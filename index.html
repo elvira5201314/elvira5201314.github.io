@@ -272,7 +272,10 @@
 
                 <div class="relative z-10 mb-8 flex justify-center">
                     <div class="w-44 h-44 rounded-full p-2 bg-gradient-to-br from-white/80 to-white/20 shadow-xl border border-white flex items-center justify-center animate-float ring-1 ring-white/50">
-                        <div class="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center relative">
+                        <!-- 修改重點：這裡加了 ondblclick，代表「點兩下」就會跳轉到 admin.html -->
+                        <div class="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center relative cursor-pointer"
+                             ondblclick="window.location.href='admin.html'">
+                             
                             <img src="logo.png" alt="Logo" class="w-full h-full object-cover transform transition duration-700 group-hover:scale-110" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                             <div class="hidden flex-col items-center justify-center gap-2 text-theme-rose/30">
                                 <i data-lucide="bone" class="w-12 h-12"></i>
