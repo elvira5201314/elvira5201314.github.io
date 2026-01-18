@@ -1,4 +1,1401 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>萌寵當家 AI GO PET SALON | 頂級寵物護理</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@300;400;500;700;900&family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        
+        tailwind.config = { 
+            theme: {
+                extend: {
+                    colors: {
+                        theme: {
+                            bg: '#FAF8F5',
+                            rose: '#D88E99',
+                            roseDeep: '#B56576',
+                            gold: '#C5A065',
+                            goldLight: '#E5CFA0',
+                            text: '#4A4238',
+                            sub: '#8C857B',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif TC"', 'serif'],
+                        en: ['"Cormorant Garamond"', 'serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(74, 66, 56, 0.08)',
+                        'glass-hover': '0 20px 40px -5px rgba(216, 142, 153, 0.25)',
+                        'glow': '0 0 20px rgba(216, 142, 153, 0.4)',
+                        'inner-light': 'inset 0 1px 1px rgba(255, 255, 255, 0.8)',
+                    },
+                    backgroundImage: {
+                        'gradient-lux': 'linear-gradient(135deg, #D88E99 0%, #C5A065 100%)',
+                        'shimmer': 'linear-gradient(45deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 60%)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'float': 'float 4s ease-in-out infinite',
+                        'shimmer': 'shimmer 2.5s infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slight': 'bounceSlight 2s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
+                        slideUp: { from: { opacity: '0', transform: 'translateY(40px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+                        shimmer: { '0%': { backgroundPosition: '-200% center' }, '100%': { backgroundPosition: '200% center' } },
+                        bounceSlight: { '0%, 100%': { transform: 'translateY(-5%)' }, '50%': { transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 全局設定 */
+        body { 
+            background-color: #FAF8F5;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(216, 142, 153, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(197, 160, 101, 0.08) 0%, transparent 40%);
+    font-family: 'Noto Serif TC', serif; /* 改成宋體 */
+            color: #4A4238;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.7; /* 增加行高，提升閱讀呼吸感 */
+        }
+        
+        h1, h2, h3, .font-serif { font-family: 'Noto Serif TC', serif; }
+        
+        /* 數字強制使用襯線體或等寬字體 */
+        .font-num, input[type="tel"], input[type="number"], .input-minimal {
+    font-family: 'Cormorant Garamond', 'Noto Serif TC', serif;
+            font-variant-numeric: tabular-nums; /* 讓數字等寬排列 */
+        }
+
+        /* --- 優化後的輸入框 (Filled Input) --- */
+        .input-minimal {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.6); /* 淡白色背景 */
+            border: 1px solid rgba(140, 133, 123, 0.2); /* 極淡邊框 */
+            padding: 0.8rem 1rem; /* 增加內距 */
+            font-size: 16px;
+            color: #4A4238;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px; /* 圓角矩形 */
+            font-weight: 500;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .input-minimal:focus {
+            background: #FFFFFF;
+            border-color: #D88E99;
+            box-shadow: 0 4px 12px rgba(216, 142, 153, 0.15);
+            outline: none;
+            transform: translateY(-1px);
+        }
+        .input-minimal::placeholder { color: #A8A29E; font-size: 0.95em; letter-spacing: 0.05em; }
+        
+        /* 錯誤狀態震動動畫 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .input-minimal.error { 
+            border-color: #EF4444; 
+            background: #FEF2F2; 
+            animation: shake 0.3s ease-in-out;
+        }
+        .error-msg { color: #EF4444; font-size: 0.8rem; margin-top: 0.4rem; margin-left: 0.5rem; display: none; font-weight: 500; }
+
+        /* --- 區塊層次感 (Active State) --- */
+        .glass-panel { 
+            background: rgba(255, 255, 255, 0.75); 
+            backdrop-filter: blur(20px) saturate(140%); 
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.6); 
+            box-shadow: var(--tw-shadow-glass), var(--tw-shadow-inner-light);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* 當區塊內有輸入框被聚焦時，整個區塊亮起 */
+        .glass-panel:focus-within {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #D88E99;
+            box-shadow: 0 20px 40px -10px rgba(216, 142, 153, 0.2);
+            transform: scale(1.01);
+            z-index: 10;
+        }
+
+        .high-risk-panel {
+            background: rgba(254, 226, 226, 0.95); 
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        /* --- 按鈕微互動 --- */
+        .btn-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn-card:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-4px);
+            border-color: #D88E99;
+            box-shadow: var(--tw-shadow-glass-hover);
+        }
+        .btn-card:active { transform: scale(0.96); } /* 點擊縮小 */
+
+        /* --- Radio & Checkbox 動畫 --- */
+        .checkbox-custom {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.35em;
+            height: 1.35em;
+            border: 1.5px solid #D88E99;
+            border-radius: 0.35em;
+            display: grid;
+            place-content: center;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .checkbox-custom::before {
+            content: "";
+            width: 0.75em;
+            height: 0.75em;
+            transform: scale(0);
+            transition: 0.2s cubic-bezier(0.5, 1.6, 0.4, 0.7); /* 彈跳效果 */
+            box-shadow: inset 1em 1em #D88E99;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .checkbox-custom:checked::before { transform: scale(1); }
+
+        .radio-group label div {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Radio 選中時的微彈跳 */
+        .radio-group input:checked + div {
+            background-color: rgba(216, 142, 153, 0.1);
+            border-color: #D88E99;
+            color: #4A4238;
+            font-weight: bold;
+            animation: bounce-slight 0.4s;
+        }
+        @keyframes bounce-slight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 其他工具類 */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5CFA0; border-radius: 10px; }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #4A4238 30%, #B56576 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .text-gold-gradient {
+            background: linear-gradient(to right, #B88746, #E5CFA0, #B88746);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 5s linear infinite;
+        }
+
+        .safe-pb { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+
+                /* --- 優化表單標籤 (Label) 樣式 --- */
+        label {
+            font-size: 14px !important;       /* 字體加大 (原本通常是 14px) */
+            font-weight: 700 !important;      /* 加粗 (宋體加粗會更有質感) */
+            color: #1a1a1a !important;        /* 改為極深的灰色，對比度更高 */
+            letter-spacing: 0.05em;           /* 稍微增加字距，提升閱讀舒適度 */
+            margin-bottom: 8px !important;    /* 增加標題與輸入框的間距 */
+        }
+
+        /* 確保必填的星號 * 還是紅色的 */
+        label span.text-rose-500, label span.text-red-500 {
+            color: #e11d48 !important;        /* 強制維持紅色 */
+        }
+
+    </style>
+
+</head>
+
+<body class="min-h-screen relative flex flex-col">
+
+    <nav class="fixed top-0 w-full z-50 transition-all duration-500 opacity-0 pointer-events-none" id="navbar">
+        <div class="bg-white/70 backdrop-blur-xl border-b border-white/40 shadow-sm">
+            <div class="px-6 py-4 flex justify-between items-center max-w-lg mx-auto">
+                <div class="flex items-center gap-3" onclick="router('home')">
+                    <div class="w-9 h-9 rounded-full bg-theme-bg border border-theme-rose/20 flex items-center justify-center overflow-hidden shadow-inner">
+                         <img src="logo.png" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                         <i data-lucide="dog" class="hidden w-5 h-5 text-theme-rose"></i>
+                    </div>
+                    <span class="font-bold text-lg tracking-widest text-theme-text font-serif">萌寵當家</span>
+                </div>
+                <button onclick="router('home')" class="flex items-center gap-1.5 text-xs font-bold text-theme-sub hover:text-theme-rose transition-colors tracking-[0.15em] uppercase border border-transparent hover:border-theme-rose/20 px-3 py-1.5 rounded-full">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 w-full max-w-lg mx-auto relative z-10 flex flex-col py-6 px-6">
+
+        <div id="view-home" class="flex flex-col justify-center min-h-[90vh] py-8">
+            
+            <div class="w-full glass-panel rounded-[32px] p-10 text-center relative overflow-hidden animate-slide-up z-20 mb-8 group">
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-theme-rose/10 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-theme-gold/10 rounded-full blur-3xl"></div>
+
+                <div class="relative z-10 mb-8 flex justify-center">
+                    <div class="w-44 h-44 rounded-full p-2 bg-gradient-to-br from-white/80 to-white/20 shadow-xl border border-white flex items-center justify-center animate-float ring-1 ring-white/50">
+                        <div class="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center relative">
+                            <img src="logo.png" alt="Logo" class="w-full h-full object-cover transform transition duration-700 group-hover:scale-110" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="hidden flex-col items-center justify-center gap-2 text-theme-rose/30">
+                                <i data-lucide="bone" class="w-12 h-12"></i>
+                                <span class="text-xs tracking-widest font-bold">IMAGE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative z-10 space-y-3 mb-10">
+                    <h1 class="text-3xl font-black tracking-[0.25em] leading-tight text-gradient font-serif">
+                        萌寵當家
+                    </h1>
+                    <div class="h-px w-24 bg-gradient-to-r from-transparent via-theme-rose/50 to-transparent mx-auto"></div>
+                    <span class="font-en text-xl font-semibold text-gold-gradient tracking-[0.15em] block">
+                        AI GO PET SALON
+                    </span>
+                    <p class="text-xs text-theme-sub tracking-[0.3em] font-medium pt-2">
+                        <span>極致呵護・專業洗護</span>
+                    </p>
+                </div>
+
+                
+                <div class="relative z-10">
+                    <button onclick="router('form')" class="group relative w-full overflow-hidden rounded-xl shadow-lg hover:shadow-glow hover:-translate-y-1 transition-all duration-500">
+                        <div class="absolute inset-0 bg-gradient-lux opacity-90 group-hover:opacity-100 transition"></div>
+                        <div class="absolute inset-0 bg-shimmer bg-[length:200%_100%] animate-shimmer opacity-30"></div>
+                        <div class="relative py-4 px-6 flex items-center justify-center gap-3">
+                            <i data-lucide="feather" class="w-5 h-5 text-white group-hover:rotate-12 transition-transform duration-300"></i>
+                            <span class="text-white font-bold text-lg tracking-[0.2em] font-serif">寵物美容契約</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-white/70 group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </button>
+                    <p class="text-[10px] text-theme-sub mt-3 tracking-wider opacity-70 flex items-center justify-center gap-1">
+                        <i data-lucide="info" class="w-3 h-3"></i> 簽署即代表您已詳閱並同意本店之服務條款
+                    </p>
+                </div>
+            </div>
+
+            <div class="w-full space-y-3 animate-slide-up" style="animation-delay: 0.15s; opacity: 0; animation-fill-mode: forwards;">
+                
+                <a href="https://line.me/R/ti/p/@567xvlnf" target="_blank" class="btn-card flex items-center p-4 rounded-2xl group hover:border-[#06C755]/50">
+                    <div class="w-10 h-10 rounded-full bg-[#06C755]/10 text-[#06C755] flex items-center justify-center mr-4 group-hover:bg-[#06C755] group-hover:text-white transition-colors duration-300">
+<svg viewBox="0 0 256 256" class="w-5 h-5" fill="currentColor">
+    <g transform="translate(1.4 1.4) scale(2.81)">
+        <path d="M 42.685 88.018 c -0.944 0 -1.935 -0.233 -2.809 -0.929 c -2.075 -1.653 -1.61 -4.302 -1.435 -5.299 l 0.015 -0.085 c 0.097 -0.573 0.523 -3.138 0.589 -3.532 c 0.143 -1.106 0.122 -1.725 0.087 -2.032 c -0.248 -0.131 -0.736 -0.332 -1.527 -0.51 C 15.806 72.699 0 57.334 0 39.057 C 0 18.615 20.187 1.984 45 1.984 c 24.813 0 45 16.631 45 37.073 c 0 6.388 -1.921 12.34 -5.848 18.055 h 0.347 l -2.727 3.14 c -0.471 0.568 -0.964 1.135 -1.476 1.7 l -0.03 0.034 c -9.005 10.364 -29.164 23.109 -34.124 25.199 C 45.535 87.442 44.169 88.018 42.685 88.018 z M 45 7.872 c -21.566 0 -39.112 13.99 -39.112 31.185 c 0 15.321 13.716 28.255 32.614 30.754 l 0.234 0.04 c 3.099 0.668 5.056 1.964 5.817 3.853 c 0.524 1.311 0.625 2.988 0.324 5.285 l -0.015 0.099 c 0 0 -0.221 1.327 -0.399 2.397 c 5.106 -2.446 21.464 -12.945 29.972 -21.843 l 1.432 -1.571 c 5.626 -6.17 8.246 -12.212 8.246 -19.015 C 84.112 21.862 66.566 7.872 45 7.872 z"/>
+        <path d="M 37.309 31.467 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.736 v 16.492 c 0 0.406 0.33 0.735 0.737 0.735 h 2.655 c 0.407 0 0.737 -0.329 0.737 -0.735 V 32.203 C 38.047 31.797 37.716 31.467 37.309 31.467"/>
+        <path d="M 55.584 31.467 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.736 v 9.798 l -7.558 -10.207 c -0.017 -0.026 -0.037 -0.051 -0.057 -0.075 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.736 v 16.492 c 0 0.406 0.33 0.735 0.737 0.735 h 2.655 v -10.59 l 7.567 10.22 c 0.052 0.073 0.117 0.134 0.187 0.182 h 2.655 c 0.407 0 0.737 -0.329 0.737 -0.735 V 32.203 C 56.321 31.797 55.991 31.467 55.584 31.467"/>
+        <path d="M 30.91 45.302 h -7.214 V 32.204 c 0 -0.407 -0.33 -0.737 -0.737 -0.737 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.737 v 16.491 c 0 0.407 0.33 0.737 0.737 0.737 H 30.91 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 C 31.646 45.632 31.316 45.302 30.91 45.302"/>
+        <path d="M 70.245 35.597 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.738 -0.736 -0.738 H 59.639 v 16.489 c 0 0.407 0.33 0.737 0.737 0.737 h 10.606 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.737 -0.736 -0.737 h -7.213 v -2.788 h 7.213 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.738 -0.736 -0.738 h -7.213 v -2.787 H 70.245 z"/>
+    </g>
+</svg>                    </div>
+                    <div class="flex-1">
+                         <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-0.5">Online Booking</span>
+                         <span class="block text-sm font-bold text-theme-text group-hover:text-[#06C755] transition-colors">加入 LINE 官方帳號</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 group-hover:text-[#06C755]"></i>
+                </a>
+
+                <a href="https://www.facebook.com/0616AIGO/?locale=zh_TW" target="_blank" class="btn-card flex items-center p-4 rounded-2xl group">
+                     <div class="w-10 h-10 rounded-full bg-[#1877F2]/10 text-[#1877F2] flex items-center justify-center mr-4 group-hover:bg-[#1877F2] group-hover:text-white transition-colors duration-300">
+                        <i data-lucide="facebook" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                         <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-0.5">Social Media</span>
+                         <span class="block text-sm font-bold text-theme-text group-hover:text-[#1877F2] transition-colors">追蹤 Facebook 粉絲專頁</span>
+                    </div>
+                    <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-300 group-hover:text-[#1877F2]"></i>
+                </a>
+
+                <a href="https://maps.google.com/?q=新北市蘆洲區長安街285巷30號" target="_blank" class="btn-card flex items-center p-4 rounded-2xl group">
+                     <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mr-4 group-hover:bg-theme-gold group-hover:text-white transition-colors">
+                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                         <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-0.5">Location</span>
+                         <span class="block text-sm font-bold text-theme-text group-hover:text-theme-gold transition-colors">新北市蘆洲區長安街285巷30號</span>
+                    </div>
+                    <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-300 group-hover:text-theme-gold"></i>
+                </a>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="tel:0277515677" class="btn-card p-4 flex flex-col items-center justify-center gap-3 rounded-2xl group">
+                        <div class="w-10 h-10 rounded-full bg-theme-rose/10 text-theme-rose flex items-center justify-center group-hover:bg-theme-rose group-hover:text-white transition-colors duration-300">
+                            <i data-lucide="phone-call" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-1">聯絡方式</span>
+                            <span class="block text-sm font-bold text-theme-text font-en tracking-wider">02 7751 5677</span>
+                        </div>
+                    </a>
+
+                    <div class="btn-card p-4 flex flex-col items-center justify-center gap-3 rounded-2xl cursor-default">
+                        <div class="w-10 h-10 rounded-full bg-theme-gold/10 text-theme-gold flex items-center justify-center">
+                            <i data-lucide="clock-3" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-1">營業時間</span>
+                            <span class="block text-sm font-bold text-theme-text font-en tracking-wider">10:00 – 19:00</span>
+                            <span class="block text-[10px] text-theme-rose font-medium mt-0.5">(週一公休)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="view-form" class="hidden pb-20 pt-20 safe-pb animate-fade-in">
+
+            
+            
+            <header class="text-center mb-10 space-y-2">
+                <span class="text-xs font-bold text-theme-gold tracking-[0.3em] uppercase block mb-2 font-en">Service Agreement</span>
+                <h2 class="text-2xl font-black text-theme-text tracking-[0.2em] font-serif">寵物美容契約書</h2>
+                <div class="flex items-center justify-center gap-2 text-theme-sub/60 mt-3">
+                    <span class="h-px w-8 bg-theme-sub/30"></span>
+                    <i data-lucide="paw-print" class="w-3 h-3"></i>
+                    <span class="h-px w-8 bg-theme-sub/30"></span>
+                </div>
+            </header>
+
+            <form id="petForm" class="space-y-6" onsubmit="event.preventDefault();" novalidate>
+
+                <!-- 一、 飼主基本資料 -->
+                <section class="glass-panel p-6 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-theme-rose"></div>
+                    <h3 class="flex items-center gap-2 text-theme-text font-bold text-sm tracking-widest mb-6">
+                        <i data-lucide="user-circle" class="w-5 h-5 text-theme-rose"></i> 飼主基本資料
+                    </h3>
+                    <div class="space-y-5">
+                        <div class="group input-group">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">飼主姓名 <span class="text-theme-rose">*</span></label>
+                            <input type="text" id="ownerName" required placeholder="請輸入姓名" class="input-minimal">
+                        </div>
+                        <div class="group input-group">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">電子信箱 <span class="text-theme-rose">*</span></label>
+                            <input type="email" id="ownerEmail" required placeholder="example@mail.com" class="input-minimal">
+                            <div class="error-msg">請檢查信箱格式</div>
+                        </div>
+                        <div class="group input-group">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">身分證字號 <span class="text-theme-rose">*</span></label>
+<input type="text" id="ownerId" required maxlength="10" placeholder="A123456789" class="input-minimal" autocapitalize="characters">
+                            <div class="error-msg">格式錯誤</div>
+                        </div>
+                        <div class="group input-group">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">聯絡手機 <span class="text-theme-rose">*</span></label>
+                            <div class="relative">
+<input type="tel" id="ownerPhone" required maxlength="10" placeholder="09xxxxxxxx" class="input-minimal pr-10" inputmode="tel" oninput="handlePhoneInput(this)">
+                                <button type="button" onclick="searchOldCustomer()" class="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-theme-sub hover:text-theme-rose transition-colors animate-pulse-slow" title="搜尋舊客資料">
+                                    <i data-lucide="search" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div class="error-msg">格式應為 09xxxxxxxx</div>
+                            <p class="text-[10px] text-theme-sub mt-1">輸入手機號碼可自動搜尋歷史資料！</p>
+                        </div>
+                        <div class="group input-group">
+                             <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">通訊地址 <span class="text-theme-rose">*</span></label>
+                            <input type="text" id="ownerAddress" required placeholder="請輸入地址" class="input-minimal">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="group input-group">
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">緊急聯絡人 <span class="text-theme-rose">*</span></label>
+                                <input type="text" id="emergencyName" required placeholder="姓名" class="input-minimal">
+                            </div>
+                            <div class="group input-group">
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">緊急電話<span class="text-theme-rose">*</span></label>
+                                <input type="tel" id="emergencyPhone" placeholder="電話" class="input-minimal">
+                                <div class="error-msg">格式不符</div>
+                            </div>
+                        </div>
+                        <div class="group input-group">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">指定就醫醫院</label>
+                            <input type="text" id="hospital" placeholder="若無則送交特約醫院" class="input-minimal">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 二、 寵物詳細資料 -->
+                <section class="glass-panel p-6 rounded-3xl relative overflow-hidden">
+                     <div class="absolute top-0 left-0 w-1 h-full bg-theme-gold"></div>
+                    <h3 class="flex items-center gap-2 text-theme-text font-bold text-sm tracking-widest mb-6">
+                        <i data-lucide="dog" class="w-5 h-5 text-theme-gold"></i> 寵物詳細資料
+                    </h3>
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2 group input-group">
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">寵物名字 <span class="text-theme-rose">*</span></label>
+                                <input type="text" id="petName" required placeholder="毛孩名字" class="input-minimal">
+                            </div>
+                            <div class="group input-group">
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">品種</label>
+                                <input type="text" id="petBreed" placeholder="例: 貴賓" class="input-minimal">
+                            </div>
+                            <div class="group input-group">
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">花色</label>
+                                <input type="text" id="petColor" placeholder="例: 棕白" class="input-minimal">
+                            </div>
+                        </div>
+
+                        <!-- 寵物年齡 -->
+                        <div class="group input-group">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">寵物年齡 <span class="text-theme-rose">*</span></label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="petAge" required min="0" placeholder="請輸入數字" class="input-minimal flex-1" inputmode="numeric" oninput="detectRiskFactors()">
+                                <span class="text-sm font-bold text-theme-text">歲</span>
+                            </div>
+                            <div class="error-msg">請輸入有效年齡</div>
+                        </div>
+
+                        <!-- 晶片號碼 -->
+                        <div class="group input-group">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">晶片號碼 <span class="text-theme-rose">*</span></label>
+                            <div class="flex gap-3 items-end">
+                                <div class="relative w-[150px] shrink-0">
+                                    <select id="chipStatus" onchange="toggleChipInput()" class="input-minimal w-full appearance-none pr-6 cursor-pointer font-bold text-theme-text">
+                                        <option value="has_chip">有晶片</option>
+                                        <option value="unknown">有晶片(號碼不詳)</option>
+                                        <option value="no_chip">無晶片</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="absolute right-0 bottom-3 w-4 h-4 text-theme-sub pointer-events-none"></i>
+                                </div>
+                                <input type="text" id="petChip" placeholder="請輸入10或15碼數字" class="input-minimal flex-1 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-transparent">
+                            </div>
+                            <div class="error-msg">請輸入正確的10或15碼數字</div>
+                        </div>
+
+                        <!-- 性別與結紮 -->
+                        <div class="grid grid-cols-2 gap-4">
+                             <div>
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">性別 <span class="text-theme-rose">*</span></label>
+                                <div class="flex gap-2 mt-2 radio-group">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="petSex" class="peer hidden" value="公">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">公</div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="petSex" class="peer hidden" value="母">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">母</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">結紮 <span class="text-theme-rose">*</span></label>
+                                <div class="flex gap-2 mt-2 radio-group">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="isNeutered" class="peer hidden" value="是">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">是</div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="isNeutered" class="peer hidden" value="否">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">否</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 親人與親狗 -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">親人 <span class="text-theme-rose">*</span></label>
+                                <div class="flex gap-2 mt-2 radio-group">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="isFriendly" class="peer hidden" value="是">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">是</div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="isFriendly" class="peer hidden" value="否">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">否</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">親狗 <span class="text-theme-rose">*</span></label>
+                                <div class="flex gap-2 mt-2 radio-group">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="isDogFriendly" class="peer hidden" value="是">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">是</div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="isDogFriendly" class="peer hidden" value="否">
+                                        <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">否</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 具攻擊性區塊 -->
+                        <div class="mb-5">
+                             <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">具攻擊性 <span class="text-theme-rose">*</span></label>
+                             <div class="flex gap-2 mt-2 radio-group">
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="isAggressive" class="peer hidden" value="是" onchange="detectRiskFactors()">
+                                    <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">是</div>
+                                </label>
+
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="isAggressive" class="peer hidden" value="否" onchange="detectRiskFactors()">
+                                    <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">否</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 過往病史區塊 -->
+                        <div class="group input-group">
+                             <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">過往病史 <span class="text-theme-rose">*</span></label>
+                             
+                             <div class="flex gap-2 mt-2 mb-3 radio-group">
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="hasHistory" value="有" class="peer hidden" onchange="detectRiskFactors()">
+                                    <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">有</div>
+                                </label>
+
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="hasHistory" value="無" class="peer hidden" onchange="detectRiskFactors()">
+                                    <div class="py-2 text-center border border-gray-200 rounded-lg transition text-sm font-bold text-gray-400 peer-checked:bg-theme-rose/10 peer-checked:border-theme-rose peer-checked:text-theme-text">無</div>
+                                </label>
+                            </div>
+
+                             <textarea rows="2" placeholder="若有病史請詳述..." class="input-minimal resize-none bg-white/30 rounded-lg border border-gray-200 focus:border-theme-rose focus:ring-0 p-3 w-full"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 三、 本次服務內容 -->
+                <section class="glass-panel p-6 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-theme-text"></div>
+                    <h3 class="flex items-center gap-2 text-theme-text font-bold text-sm tracking-widest mb-6">
+                        <i data-lucide="scissors" class="w-5 h-5 text-theme-text"></i> 本次服務內容
+                    </h3>
+                    <div class="space-y-4">
+                    <!-- 修改後的服務項目選擇區 (含其他項目輸入框) -->
+                    <div class="grid grid-cols-2 gap-3">
+                        
+                        <!-- 1. 包月洗澡 -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="serviceType" value="包月洗澡" class="peer hidden" onchange="toggleOtherServiceInput()">
+                            <div class="h-full p-4 rounded-2xl border border-white/60 bg-white/40 shadow-sm backdrop-blur-sm transition-all duration-300 peer-checked:border-theme-rose peer-checked:bg-white peer-checked:shadow-lg peer-checked:shadow-theme-rose/10 peer-checked:scale-[1.02] group-hover:border-theme-rose/30 flex flex-col items-center justify-center gap-2 text-center">
+                                <div class="w-10 h-10 rounded-full bg-white shadow-inner flex items-center justify-center text-theme-sub transition-colors peer-checked:bg-theme-rose peer-checked:text-white group-hover:scale-110 duration-300">
+                                    <i data-lucide="calendar-heart" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-sm font-bold text-theme-text peer-checked:text-theme-rose transition-colors">包月洗澡</span>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-all duration-300 text-theme-rose scale-50 peer-checked:scale-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 fill-white"></i>
+                            </div>
+                        </label>
+
+                        <!-- 2. 基礎洗澡 -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="serviceType" value="基礎洗澡" class="peer hidden" onchange="toggleOtherServiceInput()">
+                            <div class="h-full p-4 rounded-2xl border border-white/60 bg-white/40 shadow-sm backdrop-blur-sm transition-all duration-300 peer-checked:border-theme-rose peer-checked:bg-white peer-checked:shadow-lg peer-checked:shadow-theme-rose/10 peer-checked:scale-[1.02] group-hover:border-theme-rose/30 flex flex-col items-center justify-center gap-2 text-center">
+                                <div class="w-10 h-10 rounded-full bg-white shadow-inner flex items-center justify-center text-theme-sub transition-colors peer-checked:bg-theme-rose peer-checked:text-white group-hover:scale-110 duration-300">
+                                    <i data-lucide="droplets" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-sm font-bold text-theme-text peer-checked:text-theme-rose transition-colors">基礎洗澡</span>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-all duration-300 text-theme-rose scale-50 peer-checked:scale-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 fill-white"></i>
+                            </div>
+                        </label>
+
+                        <!-- 3. 精緻美容 -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="serviceType" value="精緻美容" class="peer hidden" onchange="toggleOtherServiceInput()">
+                            <div class="h-full p-4 rounded-2xl border border-white/60 bg-white/40 shadow-sm backdrop-blur-sm transition-all duration-300 peer-checked:border-theme-rose peer-checked:bg-white peer-checked:shadow-lg peer-checked:shadow-theme-rose/10 peer-checked:scale-[1.02] group-hover:border-theme-rose/30 flex flex-col items-center justify-center gap-2 text-center">
+                                <div class="w-10 h-10 rounded-full bg-white shadow-inner flex items-center justify-center text-theme-sub transition-colors peer-checked:bg-theme-rose peer-checked:text-white group-hover:scale-110 duration-300">
+                                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-sm font-bold text-theme-text peer-checked:text-theme-rose transition-colors">精緻美容</span>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-all duration-300 text-theme-rose scale-50 peer-checked:scale-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 fill-white"></i>
+                            </div>
+                        </label>
+
+                        <!-- 4. 局部修剪 -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="serviceType" value="局部修剪" class="peer hidden" onchange="toggleOtherServiceInput()">
+                            <div class="h-full p-4 rounded-2xl border border-white/60 bg-white/40 shadow-sm backdrop-blur-sm transition-all duration-300 peer-checked:border-theme-rose peer-checked:bg-white peer-checked:shadow-lg peer-checked:shadow-theme-rose/10 peer-checked:scale-[1.02] group-hover:border-theme-rose/30 flex flex-col items-center justify-center gap-2 text-center">
+                                <div class="w-10 h-10 rounded-full bg-white shadow-inner flex items-center justify-center text-theme-sub transition-colors peer-checked:bg-theme-rose peer-checked:text-white group-hover:scale-110 duration-300">
+                                    <i data-lucide="scissors" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-sm font-bold text-theme-text peer-checked:text-theme-rose transition-colors">局部修剪</span>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-all duration-300 text-theme-rose scale-50 peer-checked:scale-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 fill-white"></i>
+                            </div>
+                        </label>
+
+                        <!-- 5. 其他項目 (跨欄滿版) -->
+                        <label class="relative cursor-pointer group col-span-2">
+                            <input type="radio" name="serviceType" value="其他項目" class="peer hidden" onchange="toggleOtherServiceInput()">
+                            <div class="h-full p-3 rounded-2xl border border-white/60 bg-white/40 shadow-sm backdrop-blur-sm transition-all duration-300 peer-checked:border-theme-rose peer-checked:bg-white peer-checked:shadow-lg peer-checked:shadow-theme-rose/10 peer-checked:scale-[1.01] group-hover:border-theme-rose/30 flex items-center justify-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-white shadow-inner flex items-center justify-center text-theme-sub transition-colors peer-checked:bg-theme-rose peer-checked:text-white">
+                                    <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+                                </div>
+                                <span class="text-sm font-bold text-theme-text peer-checked:text-theme-rose transition-colors">其他項目</span>
+                            </div>
+                            <div class="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 peer-checked:opacity-100 transition-all duration-300 text-theme-rose scale-50 peer-checked:scale-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 fill-white"></i>
+                            </div>
+                        </label>
+
+                        <!-- 新增：其他項目的輸入框 (預設隱藏) -->
+                        <div id="otherServiceInputArea" class="hidden col-span-2 animate-fade-in">
+                            <input type="text" id="otherServiceDesc" placeholder="請說明服務內容 (例如: 剪指甲、清耳朵...)" class="input-minimal bg-theme-rose/5 border-theme-rose/20 focus:border-theme-rose">
+                        </div>
+                    </div>
+
+                        <!-- 預計接回時間 -->
+                        <div class="mt-6 pt-6 border-t border-gray-100">
+                            <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-3">預計接回時間</label>
+                            <div class="relative">
+                                <input type="time" id="pickupTime" class="w-full bg-white/50 border border-gray-200 text-theme-text text-sm rounded-xl focus:ring-2 focus:ring-theme-rose/20 focus:border-theme-rose block w-full p-3 outline-none transition">
+                            </div>
+                            <div class="bg-theme-rose/5 rounded-lg p-3 flex items-start gap-2 mt-3">
+                                <i data-lucide="alert-circle" class="w-4 h-4 text-theme-rose shrink-0 mt-0.5"></i>
+                                <p class="text-xs text-theme-rose font-medium leading-relaxed">
+                                    逾時 <span class="font-bold">30 分鐘</span> 以上，依照價目表公告之 安親費 額外收費。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 四、 乙方資訊 (優化版) -->
+                <section class="glass-panel p-6 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-theme-gold"></div>
+                    <h3 class="flex items-center gap-2 text-theme-text font-bold text-sm tracking-widest mb-6">
+                        <i data-lucide="store" class="w-5 h-5 text-theme-gold"></i> 乙方資訊
+                    </h3>
+                    <div class="space-y-4">
+                        <!-- 負責人與電話 -->
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 rounded-full bg-theme-gold/10 text-theme-gold flex items-center justify-center shrink-0 mt-1">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">負責人</p>
+                                <p class="text-sm font-bold text-theme-text">蔡宛倪</p>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-theme-rose/10 text-theme-rose flex items-center justify-center shrink-0 mt-1">
+                                <i data-lucide="phone" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">聯絡電話</p>
+                                <a href="tel:0277515677" class="text-sm font-bold text-theme-text hover:text-theme-rose transition-colors">02-7751-5677</a>
+                            </div>
+                        </div>
+
+                        <div class="h-px bg-gray-100 w-full"></div>
+
+                        <!-- 地址 -->
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center shrink-0 mt-1">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">地址</p>
+                                <a href="https://maps.google.com/?q=新北市蘆洲區長安街285巷30號" target="_blank" class="text-sm font-bold text-theme-text hover:text-theme-gold transition-colors">新北市蘆洲區長安街285巷30號</a>
+                            </div>
+                        </div>
+
+                        <!-- 營業時間 -->
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center shrink-0 mt-1">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">營業時間</p>
+                                <div class="flex flex-col gap-1">
+                                    <p class="text-sm font-bold text-theme-text">週二至週日 10:00 - 19:00</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 bg-theme-rose/10 text-theme-rose text-[10px] font-bold rounded">採預約制為優先</span>
+                                        <span class="text-xs text-theme-sub">(每週一店休)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="h-px bg-gray-100 w-full"></div>
+
+                        <!-- 特約醫院 -->
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 rounded-full bg-theme-rose/10 text-theme-rose flex items-center justify-center shrink-0 mt-1">
+                                <i data-lucide="cross" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-1">特約緊急送醫場所</p>
+                                <p class="text-sm font-bold text-theme-text">星宇動物醫院</p>
+                                <a href="https://maps.google.com/?q=新北市蘆洲區長榮路256號" target="_blank" class="text-xs text-theme-sub mt-0.5 hover:text-theme-rose transition-colors">新北市蘆洲區長榮路256號</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 五、 簽署聲明與法律約定 (全螢幕閱讀版) -->
+                <section class="glass-panel p-0 rounded-3xl overflow-hidden">
+                    <div class="p-4 bg-white/50 border-b border-white/60">
+                         <h3 class="text-theme-text font-bold text-sm tracking-widest text-center">簽署聲明與法律約定</h3>
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <p class="text-xs text-theme-sub text-center mb-2">請點擊下方按鈕閱讀完整條款，需閱讀至底部才可進行簽署。</p>
+
+                        <!-- 1. 一般條款按鈕 -->
+                        <button type="button" onclick="openTermsModal('general')" id="btn-general" class="w-full p-4 rounded-xl border border-theme-sub/20 bg-white/40 flex items-center justify-between group hover:border-theme-rose hover:bg-white/80 transition-all relative overflow-hidden">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-theme-sub/10 flex items-center justify-center text-theme-sub group-hover:bg-theme-rose group-hover:text-white transition-colors">
+                                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                                </div>
+                                <div class="text-left">
+                                    <span class="block text-sm font-bold text-theme-text">寵物美容定型化契約</span>
+                                    <span class="text-[10px] text-theme-sub status-text">點擊閱讀完整條款</span>
+                                </div>
+                            </div>
+                            <!-- 完成後的打勾圖示 -->
+                            <div class="check-icon hidden w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-theme-sub/50 group-hover:text-theme-rose"></i>
+                        </button>
+
+                        <!-- 2. 高風險聲明按鈕 (預設隱藏) -->
+                        <button type="button" onclick="openTermsModal('risk')" id="btn-risk" class="hidden w-full p-4 rounded-xl border border-red-200 bg-red-50/50 flex items-center justify-between group hover:border-red-400 hover:bg-red-50 transition-all relative overflow-hidden">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                </div>
+                                <div class="text-left">
+                                    <span class="block text-sm font-bold text-red-800">高齡/高風險寵物風險告知</span>
+                                    <span class="text-[10px] text-red-600/70 status-text">檢測到 10 歲以上，請點擊閱讀</span>
+                                </div>
+                            </div>
+                            <!-- 完成後的打勾圖示 -->
+                            <div class="check-icon hidden w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <i data-lucide="chevron-right" class="arrow-icon w-4 h-4 text-red-300 group-hover:text-red-500"></i>
+                        </button>
+                    </div>
+
+                    <!-- 同意勾選區 (預設鎖定) -->
+                    <div class="p-4 bg-theme-rose/5 border-t border-theme-rose/10 flex justify-center transition-colors duration-300" id="agreeSection">
+                        <label id="agreeLabel" class="flex items-center gap-3 cursor-pointer select-none opacity-50 pointer-events-none transition-all duration-300">
+                            <input type="checkbox" id="agreeCheck" class="checkbox-custom">
+                            <span class="text-xs font-bold text-theme-text tracking-wide" id="agreeText">本人已詳閱並同意以上條款內容</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 六、 甲方電子簽署 -->
+                <section class="glass-panel p-6 rounded-3xl">
+                    <label class="block text-xs font-bold text-theme-sub mb-3 tracking-[0.2em] uppercase text-center font-en">Signature</label>
+                    <div onclick="openSignatureModal()" class="w-full h-36 border border-theme-sub/20 rounded-2xl bg-white/40 shadow-inner flex items-center justify-center cursor-pointer hover:border-theme-rose/50 transition-all relative overflow-hidden group">
+                        <div id="sign-placeholder" class="text-center group-hover:scale-105 transition duration-500">
+                             <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-theme-rose/60 border border-white">
+                                <i data-lucide="pen-tool" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-theme-sub/50 tracking-widest">點擊此處開啟簽名</span>
+                        </div>
+                        <img id="sign-preview" class="hidden absolute inset-0 w-full h-full object-contain p-4" />
+                        <div class="absolute bottom-2 right-2 opacity-20">
+                            <i data-lucide="feather" class="w-16 h-16 text-theme-text rotate-[-15deg]"></i>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-4 px-2">
+                        <button type="button" onclick="clearSignature()" class="text-xs text-theme-sub hover:text-theme-rose flex items-center gap-1">
+                            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> 重新簽署 / 清除簽名
+                        </button>
+                        <span class="text-xs font-bold text-theme-text">簽署日期： <span id="signDate"></span></span>
+                    </div>
+                </section>
+
+                <button onclick="submitForm(this)" class="w-full bg-gradient-lux text-white py-4 rounded-2xl font-bold shadow-lg shadow-theme-rose/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3 tracking-[0.2em] text-lg mt-4 group overflow-hidden relative">
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <span class="relative z-10">確認並提交數位契約</span>
+                    <i data-lucide="send" class="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+                
+                <div class="h-6"></div>
+            </form>
+        </div>
+    </main>
+
+    <!-- 簽名板 (全螢幕沈浸式版本) -->
+    <div id="signatureModal" class="fixed inset-0 z-[9999] hidden bg-theme-text/80 backdrop-blur-md flex items-center justify-center opacity-0 transition-opacity duration-300">
+        
+
+        <div class="bg-[#FAF8F5] w-full h-full md:w-[95vw] md:h-[92vh] md:rounded-[32px] p-4 md:p-8 flex flex-col shadow-2xl transform translate-y-full transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1)" id="modalContent">
+            
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <button onclick="closeSignatureModal()" class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition shadow-sm">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <span class="font-bold text-xl md:text-2xl text-theme-text tracking-widest font-serif">請在此簽名</span>
+                <button onclick="saveSignature()" class="px-8 py-3 bg-theme-text text-white rounded-full text-base md:text-lg font-bold tracking-wider hover:bg-black transition shadow-lg flex items-center gap-2">
+                    完成 <i data-lucide="check" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+
+            <div class="flex-1 bg-white rounded-2xl md:rounded-[2rem] border-2 border-dashed border-gray-300 shadow-inner overflow-hidden relative touch-none">
+                <canvas id="signatureCanvas" class="w-full h-full cursor-crosshair"></canvas>
+                
+                <!-- 裝飾背景 -->
+                <div class="absolute inset-0 pointer-events-none opacity-[0.03]" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 30px 30px;"></div>
+                
+                <div class="absolute bottom-6 right-6 text-sm md:text-base text-gray-300 pointer-events-none select-none font-serif tracking-widest">
+                    Signature Area
+                </div>
+            </div>
+            
+            <div class="mt-4 flex justify-center shrink-0">
+                 <button onclick="clearCanvas()" class="flex items-center gap-2 text-base font-bold text-theme-sub hover:text-theme-rose transition px-6 py-3 bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md">
+                    <i data-lucide="eraser" class="w-5 h-5"></i> 清除重寫
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed top-8 left-1/2 -translate-x-1/2 glass-panel px-6 py-4 flex items-center gap-3 transform -translate-y-40 transition-all duration-500 z-[10000] rounded-full shadow-2xl min-w-[280px]">
+        <div id="toastIconBg" class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+            <i id="toastIcon" data-lucide="check" class="w-3.5 h-3.5 text-white stroke-[3]"></i>
+        </div>
+        <span class="text-sm font-bold text-theme-text tracking-wider" id="toastMsg">操作成功</span>
+    </div>
+
+            <!-- 全螢幕條款閱讀視窗 -->
+    <div id="termsModal" class="fixed inset-0 z-[9999] hidden bg-white flex flex-col transition-opacity duration-300 opacity-0">
+        <!-- 標題列 -->
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white/80 backdrop-blur-md shadow-sm shrink-0">
+            <h3 id="modalTitle" class="font-bold text-lg text-theme-text tracking-widest font-serif">條款內容</h3>
+            <button onclick="closeTermsModal()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- 滾動內容區 -->
+        <div id="modalContentBody" class="flex-1 overflow-y-auto p-6 text-sm leading-loose text-justify text-theme-text/80 space-y-4 pb-24 scroll-smooth">
+            <!-- 內容由 JS 動態注入 -->
+        </div>
+
+        <!-- 底部確認按鈕區 (浮動) -->
+        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-white via-white to-white/0 pt-12 flex justify-center">
+            <button id="modalConfirmBtn" onclick="confirmRead()" disabled class="w-full max-w-sm py-3 rounded-full bg-gray-300 text-white font-bold tracking-widest shadow-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-not-allowed">
+                <span>請滑動至底部</span>
+                <i data-lucide="arrow-down" class="w-4 h-4 animate-bounce"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Supabase 設定 (修正變數名稱) ---
+        const SUPABASE_URL = 'https://anzxwdphcxafxsglomez.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuenh3ZHBoY3hhZnhzZ2xvbWV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MjU2MzUsImV4cCI6MjA4NDMwMTYzNX0.i6ZHUO7UGz8AbAUz7fPHavYxKG1O-UE4k7Xr2VqP9xc';
+        
+        // 使用 window.supabase 確保讀取到 SDK，並將客戶端命名為 sbClient
+        const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        
+        // 初始化 Icons
+        lucide.createIcons();
+
+        // 初始化日期
+        const today = new Date();
+        document.getElementById('signDate').innerText = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+
+        // 頁面路由
+        function router(page) {
+            const home = document.getElementById('view-home');
+            const form = document.getElementById('view-form');
+            const navbar = document.getElementById('navbar');
+            
+            window.scrollTo({top: 0, behavior: 'smooth'});
+
+            if (page === 'form') {
+                home.style.display = 'none';
+                form.classList.remove('hidden');
+                navbar.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                form.classList.add('hidden');
+                home.style.display = 'flex';
+                navbar.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+        // --- 切換顯示「其他項目」輸入框 ---
+        function toggleOtherServiceInput() {
+            const isOther = document.querySelector('input[name="serviceType"][value="其他項目"]').checked;
+            const inputArea = document.getElementById('otherServiceInputArea');
+            
+            if (isOther) {
+                inputArea.classList.remove('hidden');
+                // 自動聚焦，體驗更好
+                setTimeout(() => document.getElementById('otherServiceDesc').focus(), 100);
+            } else {
+                inputArea.classList.add('hidden');
+                document.getElementById('otherServiceDesc').value = ''; // 隱藏時清空內容
+            }
+        }
+
+        // --- 晶片輸入邏輯 ---
+        function toggleChipInput() {
+            const status = document.getElementById('chipStatus').value;
+            const input = document.getElementById('petChip');
+            const errorMsg = input.closest('.input-group').querySelector('.error-msg');
+
+            // 重置狀態
+            input.classList.remove('error'); 
+            if(errorMsg) errorMsg.style.display = 'none';
+
+            if (status === 'no_chip' || status === 'unknown') {
+                input.value = '';
+                input.disabled = true;
+                input.placeholder = status === 'no_chip' ? '無晶片免填' : '號碼不詳';
+                input.style.backgroundColor = 'transparent';
+            } else {
+                input.disabled = false;
+                input.placeholder = '請輸入10或15碼數字';
+                input.style.backgroundColor = ''; // 恢復 Filled Input 背景色
+                input.focus();
+            }
+        }
+
+        // --- 條款閱讀邏輯 ---
+        const TERMS_CONTENT = {
+            general: `
+                <p><strong>第一條 (契約目的)</strong><br>本服務為犬貓美容，不涉及醫療行為。乙方環境維持安全、通風、清潔。</p>
+                <p><strong>第五條 (健康告知)</strong><br>甲方應誠實告知寵物病史與攻擊性。若因隱瞞導致意外，乙方不負損害賠償責任。</p>
+                <p><strong>第九條 (退費規定)</strong><br>包月服務終止時，預收總額扣除「已使用次數 × 單次原價」後退還餘額，乙方不額外收取解約手續費。</p>
+                <p><strong>第十二條 (逾時接回)</strong><br>於約定時間逾時 30 分鐘以上，依照價目表公告之 安親費 額外收費。</p>
+                <p><strong>第十五條 (履約保障)</strong><br>預收費用累計金額新台幣一萬元以下，依法免提供履約保障。</p>
+                <p>其餘細節依行政院農委會定型化契約範本辦理。</p>
+                <p>● 經甲乙雙方合意約定，由甲方即時閱覽理解本契約內容並簽署。</p>
+                <p>● 本人已確認預計接回時間與服務金額無誤，並同意上述條款。</p>
+                <div class="h-20"></div>
+            `,
+            risk: `
+                <p class="font-bold text-red-600 mb-2 text-base">檢測到毛孩已滿 10歲，請務必詳閱以下條款：</p>
+                <p><strong>一、飼主誠實告知義務</strong><br>本人（甲方）確認，已就本人所知悉之寵物年齡、過往病史（如心臟病、癲癇、氣喘、關節問題等）、近期手術或治療紀錄、懷孕狀況、過敏反應，以及行為特性（如咬人紀錄、特定部位敏感、抗拒保定等），向 貴店（乙方）為完整且真實之說明。</p>
+                <p>如因甲方未告知、未完全告知或提供不實資訊，致乙方於已盡合理專業注意義務之情形下，仍難以預見或防範風險發生者，其相關責任歸屬，雙方同意依實際情形及相關法律規定另行認定。</p>
+                <p><strong>二、高齡與特殊健康狀況之風險告知</strong><br>本人知悉，若寵物屬於高齡個體、幼齡犬貓，或患有慢性疾病、潛在或隱性疾病者，其體能、心肺功能及對壓力之耐受度，可能低於一般健康寵物。</p>
+                <p>於美容過程中之洗澡、吹整、保定或操作，可能因緊張、興奮或身體負荷，誘發身體不適、休克、舊疾復發，甚或發生其他不可預期之風險。</p>
+                <p>本人已充分理解上述情形，並同意：如經判定該不利結果係源於寵物自身健康狀況或生理反應，且非因乙方之故意或重大過失所致者，乙方不負損害賠償責任。</p>
+                <p><strong>三、攻擊性與行為安全防護同意</strong><br>如寵物於服務過程中出現高度緊張、攻擊行為、過度躁動或其他影響人員及寵物安全之情形，本人同意並授權乙方，基於安全考量，採取必要之防護與保定措施（包含但不限於牽繩保定、伊莉莎白頸圈、嘴套或雙人協同作業）。</p>
+                <p>若經專業判斷認為繼續服務恐危及寵物或人員安全，乙方得隨時中止服務，並依已完成之服務內容與進度計收費用。</p>
+                <p><strong>四、緊急醫療處置同意</strong><br>服務期間如寵物發生身體不適或緊急狀況，本人同意乙方得優先將寵物送往本人指定或就近之合適動物醫院進行緊急處置，相關醫療及必要交通費用，由本人依法負擔。</p>
+                <p><strong>五、飼主確認</strong><br>本人已詳閱並充分理解上述所有內容，確認已就相關風險獲得說明，並於審慎評估後，同意將寵物交付乙方進行美容服務。</p>
+                <div class="h-20"></div>
+            `
+        };
+
+        let readStatus = { general: false, risk: false };
+        let currentReading = '';
+        let isHighRisk = false;
+
+        // --- 優化版：複合風險檢測邏輯 ---
+        function detectRiskFactors() {
+            const ageInput = document.getElementById('petAge');
+            // 防呆：如果 DOM 還沒載入就跳過
+            if (!ageInput) return;
+
+            const age = parseInt(ageInput.value) || 0;
+            const isAggressive = document.querySelector('input[name="isAggressive"]:checked')?.value === '是';
+            const hasHistory = document.querySelector('input[name="hasHistory"]:checked')?.value === '有';
+
+            const btnRisk = document.getElementById('btn-risk');
+            const agreeText = document.getElementById('agreeText');
+            
+            // 1. 計算風險原因
+            let reasons = [];
+            if(age >= 10) reasons.push("高齡");
+            if(isAggressive) reasons.push("攻擊性");
+            if(hasHistory) reasons.push("病史");
+
+            // 2. 更新全域變數
+            window.riskReasons = reasons;
+            
+            // 3. 判斷是否有風險
+            if (reasons.length > 0) {
+                isHighRisk = true;
+                
+                // 顯示按鈕
+                btnRisk.classList.remove('hidden');
+                btnRisk.classList.add('flex');
+                
+                // ★ 關鍵修正：只要數據變動，就強制重置為「未讀」狀態
+                // 除非是剛好完全一樣的數據（這裡簡化處理：只要觸發檢測就重置）
+                if(readStatus.risk) {
+                    readStatus.risk = false;
+                    showToast('資料已變更，請重新閱讀風險條款', false);
+                }
+                
+                // 更新按鈕 UI (傳入 false 代表未讀)
+                updateButtonUI('risk', false);
+
+                // 更新底部勾選文字
+                agreeText.innerText = `本人已詳閱並同意以上契約條款及特殊風險告知 (${reasons.join('、')})`;
+            } else {
+                isHighRisk = false;
+                
+                // 隱藏按鈕
+                btnRisk.classList.add('hidden');
+                btnRisk.classList.remove('flex');
+                
+                // 恢復一般文字
+                agreeText.innerText = "本人已詳閱並同意以上契約條款";
+            }
+
+            // 4. 重新檢查 Checkbox 鎖定狀態
+            checkAllRead();
+        }
+
+        // --- 優化版：更新按鈕 UI ---
+        function updateButtonUI(type, isDone) {
+            const btn = document.getElementById(`btn-${type}`);
+            if (!btn) return; // 防呆
+
+            const checkIcon = btn.querySelector('.check-icon');
+            const arrowIcon = btn.querySelector('.arrow-icon');
+            const statusText = btn.querySelector('.status-text');
+
+            if (isDone) {
+                // 已閱讀 (綠色)
+                btn.classList.add('border-green-500', 'bg-green-50');
+                if(type === 'risk') btn.classList.remove('border-red-200', 'bg-red-50/50');
+                
+                checkIcon.classList.remove('hidden');
+                arrowIcon.classList.add('hidden');
+                statusText.innerText = "已閱讀完成";
+                statusText.classList.add('text-green-600');
+            } else {
+                // 未閱讀 (紅色/灰色)
+                btn.classList.remove('border-green-500', 'bg-green-50');
+                
+                checkIcon.classList.add('hidden');
+                arrowIcon.classList.remove('hidden');
+                statusText.classList.remove('text-green-600');
+
+                if (type === 'risk') {
+                    btn.classList.add('border-red-200', 'bg-red-50/50');
+                    // ★ 關鍵修正：確保讀取到最新的 riskReasons，若無則顯示預設值
+                    const reasons = window.riskReasons || [];
+                    const reasonText = reasons.length > 0 ? reasons.join('、') : '高齡/風險';
+                    statusText.innerText = `檢測到 ${reasonText}，請點擊閱讀`;
+                } else {
+                    // 一般條款
+                    statusText.innerText = "點擊閱讀完整條款";
+                }
+            }
+        }
+
+
+        // --- 簽名板邏輯 (防抖 + 鎖定背景) ---
+        let signaturePad = null;
+        const modal = document.getElementById('signatureModal');
+        const modalContent = document.getElementById('modalContent');
+        const canvas = document.getElementById('signatureCanvas');
+
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            if(signaturePad) signaturePad.clear();
+        }
+
+        // 防抖函數
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this, args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+        window.addEventListener('resize', debounce(() => { 
+            if(!modal.classList.contains('hidden')) resizeCanvas(); 
+        }, 250));
+
+        function openSignatureModal() {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // 鎖定背景
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('translate-y-full');
+            }, 10);
+            resizeCanvas();
+            if (!signaturePad) {
+                signaturePad = new SignaturePad(canvas, { 
+                    minWidth: 1.5, maxWidth: 3.5, penColor: '#4A4238', velocityFilterWeight: 0.7 
+                });
+            }
+        }
+
+        function closeSignatureModal() {
+            modalContent.classList.add('translate-y-full');
+            modal.classList.add('opacity-0');
+            document.body.style.overflow = '';
+            setTimeout(() => modal.classList.add('hidden'), 500);
+        }
+
+        function clearCanvas() { if (signaturePad) signaturePad.clear(); }
+
+        function saveSignature() {
+            if (signaturePad.isEmpty()) { showToast('請先簽名', false); return; }
+            const dataUrl = signaturePad.toDataURL();
+            document.getElementById('sign-preview').src = dataUrl;
+            document.getElementById('sign-preview').classList.remove('hidden');
+            document.getElementById('sign-placeholder').classList.add('hidden');
+            closeSignatureModal();
+        }
+
+        function clearSignature() {
+             document.getElementById('sign-preview').classList.add('hidden');
+             document.getElementById('sign-placeholder').classList.remove('hidden');
+             if(signaturePad) signaturePad.clear();
+        }
+
+        // --- 條款視窗邏輯 ---
+        function openTermsModal(type) {
+            currentReading = type;
+            const termsModal = document.getElementById('termsModal');
+            const contentBody = document.getElementById('modalContentBody');
+            const title = document.getElementById('modalTitle');
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+
+            title.innerText = type === 'general' ? '寵物美容定型化契約' : '高風險寵物風險告知';
+            contentBody.innerHTML = TERMS_CONTENT[type];
+            
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+            confirmBtn.classList.remove('bg-theme-text', 'hover:bg-black', 'bg-red-500', 'hover:bg-red-600');
+            confirmBtn.innerHTML = `<span>請滑動至底部</span> <i data-lucide="arrow-down" class="w-4 h-4 animate-bounce"></i>`;
+
+            termsModal.classList.remove('hidden');
+            contentBody.scrollTop = 0;
+
+            setTimeout(() => {
+                termsModal.classList.remove('opacity-0');
+                // 自動判斷是否需滾動
+                if (contentBody.scrollHeight <= contentBody.clientHeight + 50) {
+                    enableConfirmBtn(type);
+                }
+            }, 100);
+
+            contentBody.onscroll = function() {
+                if (contentBody.scrollTop + contentBody.clientHeight >= contentBody.scrollHeight - 50) {
+                    enableConfirmBtn(type);
+                }
+            };
+            lucide.createIcons();
+        }
+
+        function enableConfirmBtn(type) {
+            const btn = document.getElementById('modalConfirmBtn');
+            btn.disabled = false;
+            btn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+            if (type === 'general') btn.classList.add('bg-theme-text', 'hover:bg-black');
+            else btn.classList.add('bg-red-500', 'hover:bg-red-600');
+            btn.innerHTML = `<span>我已詳閱並同意</span> <i data-lucide="check" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+        }
+
+        function confirmRead() {
+            readStatus[currentReading] = true;
+            updateButtonUI(currentReading, true);
+            closeTermsModal();
+            checkAllRead();
+            showToast('已完成閱讀', true);
+        }
+
+        function updateButtonUI(type, isDone) {
+            const btn = document.getElementById(`btn-${type}`);
+            const checkIcon = btn.querySelector('.check-icon');
+            const arrowIcon = btn.querySelector('.arrow-icon');
+            const statusText = btn.querySelector('.status-text');
+
+            if (isDone) {
+                btn.classList.add('border-green-500', 'bg-green-50');
+                if(type === 'risk') btn.classList.remove('border-red-200', 'bg-red-50/50');
+                checkIcon.classList.remove('hidden');
+                arrowIcon.classList.add('hidden');
+                statusText.innerText = "已閱讀完成";
+                statusText.classList.add('text-green-600');
+            } else {
+                btn.classList.remove('border-green-500', 'bg-green-50');
+                if(type === 'risk') btn.classList.add('border-red-200', 'bg-red-50/50');
+                checkIcon.classList.add('hidden');
+                arrowIcon.classList.remove('hidden');
+                
+                if (type === 'general') {
+                    statusText.innerText = "點擊閱讀完整條款";
+                } else {
+                    const reasons = window.riskReasons || [];
+                    const reasonText = reasons.length > 0 ? reasons.join('、') : '高齡/風險';
+                    statusText.innerText = `檢測到 ${reasonText}，請點擊閱讀`;
+                }
+                statusText.classList.remove('text-green-600');
+            }
+        }
+
+        function closeTermsModal() {
+            const termsModal = document.getElementById('termsModal');
+            termsModal.classList.add('opacity-0');
+            setTimeout(() => termsModal.classList.add('hidden'), 300);
+        }
+
+        function checkAllRead() {
+            const agreeLabel = document.getElementById('agreeLabel');
+            const agreeSection = document.getElementById('agreeSection');
+            let allDone = isHighRisk ? (readStatus.general && readStatus.risk) : readStatus.general;
+
+            if (allDone) {
+                agreeLabel.classList.remove('opacity-50', 'pointer-events-none');
+                agreeSection.classList.remove('bg-theme-rose/5');
+                agreeSection.classList.add('bg-green-50/50');
+            } else {
+                agreeLabel.classList.add('opacity-50', 'pointer-events-none');
+                document.getElementById('agreeCheck').checked = false;
+                agreeSection.classList.add('bg-theme-rose/5');
+                agreeSection.classList.remove('bg-green-50/50');
+            }
+        }
+
+        // --- 表單驗證與提交 (結合 CSS Shake 動畫) ---
+        function validateForm() {
+            let isValid = true;
+            let firstError = null;
+
+            // 1. 文字欄位檢查 (補齊所有必填欄位)
+            // 這些是 HTML 標籤上有紅色 * 的欄位
+            const requiredIds = [
+                'ownerName',        // 飼主姓名
+                'ownerEmail',       // 電子信箱
+                'ownerId',          // 身分證
+                'ownerPhone',       // 聯絡手機
+                'ownerAddress',     // 通訊地址
+                'emergencyName',    // 緊急聯絡人
+                'emergencyPhone',   //緊急聯絡電話
+                'petName',          // 寵物名字
+                'petAge'            // 寵物年齡
+            ];
+
+            requiredIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el || !el.value.trim()) {
+                    if(el) {
+                        el.classList.add('error'); // 觸發紅框震動
+                        // 監聽輸入事件，一旦使用者開始打字就移除紅框
+                        el.addEventListener('input', function() { this.classList.remove('error'); }, {once: true});
+                        if(!firstError) firstError = el;
+                    }
+                    isValid = false;
+                }
+            });
+
+            // 1.1 晶片號碼特殊檢查
+            const chipStatus = document.getElementById('chipStatus').value;
+            if (chipStatus === 'has_chip') {
+                const chipInput = document.getElementById('petChip');
+                if (!chipInput.value.trim()) {
+                    chipInput.classList.add('error');
+                    chipInput.addEventListener('input', function() { this.classList.remove('error'); }, {once: true});
+                    isValid = false;
+                    if(!firstError) firstError = chipInput;
+                }
+            }
+
+            // 2. Radio 單選題檢查 (補齊所有單選題)
+            const radioGroups = [
+                'petSex',           // 性別
+                'isNeutered',       // 結紮
+                'isFriendly',       // 親人
+                'isDogFriendly',    // 親狗 (原本漏掉)
+                'isAggressive',     // 攻擊性
+                'hasHistory',       // 過往病史 (原本漏掉)
+                'serviceType'       // 服務內容
+            ];
+
+            radioGroups.forEach(name => {
+                const checked = document.querySelector(`input[name="${name}"]:checked`);
+                if (!checked) {
+                    isValid = false;
+                    // 找到該選項所在的區塊 (glass-panel) 讓它閃爍
+                    const groupInputs = document.getElementsByName(name);
+                    if(groupInputs.length > 0) {
+                        const group = groupInputs[0].closest('.glass-panel') || groupInputs[0].closest('.input-group');
+                        if(group) {
+                            group.classList.add('animate-pulse'); 
+                            // 移除動畫 class 以便下次能再次觸發
+                            setTimeout(() => group.classList.remove('animate-pulse'), 1000);
+                            if(!firstError) firstError = group;
+                        }
+                    }
+                }
+            });
+
+            // 3. 簽名檢查
+            if(document.getElementById('sign-preview').classList.contains('hidden')) {
+                showToast('請完成簽名', false);
+                // 讓簽名板閃爍
+                const signArea = document.querySelector('[onclick="openSignatureModal()"]');
+                if(signArea) {
+                    signArea.classList.add('border-red-500');
+                    setTimeout(() => signArea.classList.remove('border-red-500'), 1500);
+                    if(!firstError) firstError = signArea;
+                }
+                isValid = false;
+            }
+
+            if (!isValid && firstError) {
+                // 滾動到第一個錯誤的地方
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showToast('請檢查紅色標記或閃爍欄位', false);
+            }
+
+            return isValid;
+        }
+
+
         async function submitForm(btn) {
+            // 1. 檢查條款是否勾選
             if(!document.getElementById('agreeCheck').checked) {
                 showToast('請詳閱並同意服務條款', false);
                 const label = document.getElementById('agreeLabel');
@@ -7,8 +1404,10 @@
                 return;
             }
 
+            // 2. 執行欄位驗證
             if(!validateForm()) return;
 
+            // 3. 按鈕變更為讀取狀態
             const originalContent = btn.innerHTML;
             btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i><span class="ml-2">傳送中...</span>`;
             btn.disabled = true;
@@ -16,6 +1415,7 @@
             lucide.createIcons();
 
             try {
+                // 4. 收集表單資料
                 const formData = {
                     owner_name: document.getElementById('ownerName').value,
                     owner_email: document.getElementById('ownerEmail').value,
@@ -31,6 +1431,7 @@
                     pet_color: document.getElementById('petColor').value,
                     pet_age: parseInt(document.getElementById('petAge').value) || 0,
                     
+                    // 晶片處理
                     pet_chip: (function(){
                         const status = document.getElementById('chipStatus').value;
                         if(status === 'no_chip') return '無晶片';
@@ -38,6 +1439,7 @@
                         return document.getElementById('petChip').value;
                     })(),
 
+                    // 單選題收集
                     pet_sex: document.querySelector('input[name="petSex"]:checked')?.value,
                     is_neutered: document.querySelector('input[name="isNeutered"]:checked')?.value,
                     is_friendly: document.querySelector('input[name="isFriendly"]:checked')?.value,
@@ -45,17 +1447,34 @@
                     is_aggressive: document.querySelector('input[name="isAggressive"]:checked')?.value,
                     has_history: document.querySelector('input[name="hasHistory"]:checked')?.value,
                     
-                    service_type: document.querySelector('input[name="serviceType"]:checked')?.value,
+                    // ★ 修改重點：這裡加入了「其他項目」的文字合併邏輯 ★
+                    service_type: (function() {
+                        // 取得目前選中的項目
+                        const type = document.querySelector('input[name="serviceType"]:checked')?.value;
+                        
+                        // 如果選的是「其他項目」，就去抓輸入框的字
+                        if (type === '其他項目') {
+                            const desc = document.getElementById('otherServiceDesc').value.trim();
+                            // 如果有輸入文字，就合併 (例如：其他項目 (剪指甲))
+                            if (desc) {
+                                return `其他項目 (${desc})`;
+                            }
+                        }
+                        // 如果不是其他項目，或沒輸入文字，就直接回傳原本的值
+                        return type;
+                    })(),
+
                     pickup_time: document.getElementById('pickupTime').value,
                     signature_data: document.getElementById('sign-preview').src,
                     risk_factors: (window.riskReasons || []).join(',')
                 };
 
-                // ★ 這裡改用 sbClient
+                // 5. 送出資料到 Supabase
                 const { error } = await sbClient.from('service_contracts').insert([formData]);
 
                 if (error) throw error;
 
+                // 6. 成功後的處理
                 showToast('契約傳送成功！');
                 btn.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i><span class="ml-2">完成</span>`;
                 btn.classList.replace('bg-gradient-lux', 'bg-green-500');
@@ -67,12 +1486,18 @@
                     btn.classList.remove('opacity-80', 'cursor-not-allowed', 'bg-green-500');
                     btn.classList.add('bg-gradient-lux');
                     
+                    // 重置表單
                     document.getElementById('petForm').reset();
                     clearSignature();
                     
+                    // 重置 UI 狀態
                     document.getElementById('btn-risk').classList.add('hidden');
                     document.getElementById('btn-risk').classList.remove('flex');
                     document.getElementById('agreeLabel').querySelector('span').innerText = "本人已詳閱並同意以上契約條款";
+                    
+                    // 隱藏其他項目輸入框
+                    document.getElementById('otherServiceInputArea').classList.add('hidden');
+
                     readStatus = { general: false, risk: false };
                     isHighRisk = false;
                     updateButtonUI('general', false);
@@ -89,3 +1514,222 @@
                 lucide.createIcons();
             }
         }
+
+
+
+        // --- 舊客搜尋 (改為抓取全部並過濾) ---
+        async function searchOldCustomer() {
+            const phoneInput = document.getElementById('ownerPhone');
+            const phone = phoneInput.value.trim();
+            
+            if (!phone || phone.length < 9) {
+                showToast('請輸入正確的手機號碼', false);
+                return;
+            }
+            
+            const searchBtn = phoneInput.nextElementSibling;
+            const originalIcon = searchBtn.innerHTML;
+            searchBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+            lucide.createIcons();
+
+            try {
+                const { data, error } = await sbClient
+                    .from('service_contracts')
+                    .select('*')
+                    .eq('owner_phone', phone)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    const uniquePets = {};
+                    data.forEach(record => {
+                        const name = record.pet_name;
+                        if (!uniquePets[name]) {
+                            uniquePets[name] = record;
+                        }
+                    });
+                    
+                    const petList = Object.values(uniquePets);
+
+                    // ★ 修改處：不管找到幾隻，全部都強制跳出彈窗
+                    renderPetSelectionModal(petList);
+
+                } else {
+                    showToast('查無此號碼紀錄', false);
+                }
+            } catch (err) {
+                console.error('Search Error:', err);
+                showToast('查詢失敗，請稍後再試', false);
+            } finally {
+                searchBtn.innerHTML = originalIcon;
+                lucide.createIcons();
+            }
+        }
+
+        // 輔助函數：填寫表單資料 (從 searchOldCustomer 獨立出來)
+        function fillFormWithData(data) {
+            document.getElementById('ownerName').value = data.owner_name || '';
+            document.getElementById('ownerEmail').value = data.owner_email || '';
+            document.getElementById('ownerId').value = data.owner_id || '';
+            document.getElementById('ownerAddress').value = data.owner_address || '';
+            document.getElementById('emergencyName').value = data.emergency_name || '';
+            document.getElementById('emergencyPhone').value = data.emergency_phone || '';
+            document.getElementById('hospital').value = data.hospital || '';
+
+            document.getElementById('petName').value = data.pet_name || '';
+            document.getElementById('petBreed').value = data.pet_breed || '';
+            document.getElementById('petColor').value = data.pet_color || '';
+            document.getElementById('petAge').value = data.pet_age || '';
+            
+            const radioFields = {
+                'petSex': data.pet_sex,
+                'isNeutered': data.is_neutered,
+                'isFriendly': data.is_friendly,
+                'isDogFriendly': data.is_dog_friendly,
+                'isAggressive': data.is_aggressive,
+                'hasHistory': data.has_history
+            };
+
+            for (const [name, value] of Object.entries(radioFields)) {
+                if (value) {
+                    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (radio) radio.checked = true;
+                }
+            }
+
+            if (data.pet_chip) {
+                const chipInput = document.getElementById('petChip');
+                const chipSelect = document.getElementById('chipStatus');
+                if (data.pet_chip === '無晶片' || data.pet_chip === '號碼不詳') {
+                    chipSelect.value = data.pet_chip === '無晶片' ? 'no_chip' : 'unknown';
+                } else {
+                    chipSelect.value = 'has_chip';
+                    chipInput.value = data.pet_chip;
+                }
+                toggleChipInput();
+            }
+            
+            // 強制觸發風險檢測
+            detectRiskFactors();
+        }
+
+        // 輔助函數：渲染寵物選擇列表
+        function renderPetSelectionModal(pets) {
+            const modal = document.getElementById('petSelectModal');
+            const container = document.getElementById('petListContainer');
+            const content = document.getElementById('petSelectContent');
+            
+            container.innerHTML = ''; // 清空舊內容
+
+            pets.forEach(pet => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-4 rounded-2xl bg-white border border-gray-100 shadow-sm hover:border-theme-rose hover:shadow-md hover:bg-theme-rose/5 transition-all group relative overflow-hidden';
+                btn.onclick = () => {
+                    fillFormWithData(pet);
+                    closePetSelectModal();
+                    showToast(`已載入 ${pet.pet_name} 的資料`, true);
+                };
+
+                // ★ 新增：將 created_at 轉成 YYYY/MM/DD 格式
+                const dateObj = new Date(pet.created_at);
+                const dateStr = `${dateObj.getFullYear()}/${(dateObj.getMonth()+1).toString().padStart(2, '0')}/${dateObj.getDate().toString().padStart(2, '0')}`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between relative z-10">
+                        <div>
+                            <span class="block text-lg font-bold text-theme-text group-hover:text-theme-rose transition-colors">${pet.pet_name}</span>
+                            <!-- ★ 修改：顯示日期 -->
+                            <span class="text-xs text-theme-sub">上次服務：${dateStr}</span>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-theme-rose group-hover:text-white transition-colors">
+                            <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+
+            // 顯示彈窗
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // 鎖定背景捲動
+            lucide.createIcons();
+
+            // 動畫
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+
+        // 輔助函數：關閉寵物選擇彈窗
+        function closePetSelectModal() {
+            const modal = document.getElementById('petSelectModal');
+            const content = document.getElementById('petSelectContent');
+            
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            document.body.style.overflow = ''; // 解除鎖定
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+
+
+        // --- Toast 提示 ---
+        function showToast(msg, isSuccess = true) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            const iconBg = document.getElementById('toastIconBg');
+            const icon = document.getElementById('toastIcon');
+            
+            iconBg.className = isSuccess ? "w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0" : "w-6 h-6 rounded-full bg-red-500 flex items-center justify-center shrink-0";
+            icon.setAttribute('data-lucide', isSuccess ? 'check' : 'alert-circle');
+            lucide.createIcons();
+            
+            toast.classList.remove('-translate-y-40');
+            toast.classList.add('translate-y-0');
+            setTimeout(() => {
+                toast.classList.add('-translate-y-40');
+                toast.classList.remove('translate-y-0');
+            }, 3000);
+        }
+
+    </script>
+    <!-- 寵物選擇彈窗 (新增部分) -->
+    <div id="petSelectModal" class="fixed inset-0 z-[9999] hidden bg-black/20 backdrop-blur-[2px] flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-[#FAF8F5] w-[90%] max-w-sm rounded-[32px] p-6 shadow-2xl transform scale-95 transition-transform duration-300 border border-white/50" id="petSelectContent">
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-theme-rose/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-slight">
+                    <i data-lucide="party-popper" class="w-8 h-8 text-theme-rose"></i>
+                </div>
+                <h3 class="text-xl font-bold text-theme-text font-serif tracking-widest mb-1">歡迎回來！</h3>
+<p class="text-xs text-theme-sub tracking-wider">找到歷史紀錄，請確認要帶入的資料：</p>
+            </div>
+
+            <!-- 寵物列表容器 -->
+            <div id="petListContainer" class="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1 mb-4">
+                <!-- JS 會自動產生內容放在這裡 -->
+            </div>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-200"></div>
+                <span class="flex-shrink-0 mx-3 text-gray-300 text-xs">OR</span>
+                <div class="flex-grow border-t border-gray-200"></div>
+            </div>
+
+            <button onclick="closePetSelectModal()" class="w-full py-3 rounded-xl border border-gray-300 text-gray-500 font-bold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                <i data-lucide="pen-line" class="w-4 h-4"></i>
+                不使用舊資料，填寫新表單
+            </button>
+        </div>
+    </div>
+</body>
+</html>
