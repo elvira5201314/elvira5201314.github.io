@@ -709,11 +709,23 @@ input, select, textarea {
                     </div>
 
                         <!-- 預計接回時間 -->
-                        <div class="mt-6 pt-6 border-t border-gray-100">
+<div class="mt-6 pt-6 border-t border-gray-100">
                             <label class="block text-[10px] font-bold text-theme-sub uppercase tracking-wider mb-3">預計接回時間</label>
-                            <div class="relative">
-                                <input type="time" id="pickupTime" class="w-full bg-white/50 border border-gray-200 text-theme-text text-sm rounded-xl focus:ring-2 focus:ring-theme-rose/20 focus:border-theme-rose block w-full p-3 outline-none transition">
+                            
+                            <div class="flex gap-3">
+                                <button type="button" id="btn-notify-later" onclick="togglePickupTimeMode()" class="px-3 py-2 rounded-xl border border-theme-sub/20 bg-white/40 text-theme-sub text-xs font-bold hover:bg-theme-rose hover:text-white hover:border-theme-rose transition-all flex flex-col items-center justify-center gap-1 min-w-[80px] group active:scale-95">
+                                    <i data-lucide="bell" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i>
+                                    <span>另行通知</span>
+                                </button>
+                                <div class="relative flex-1">
+                                    <input type="time" id="pickupTime" class="w-full bg-white/50 border border-gray-200 text-theme-text text-sm rounded-xl focus:ring-2 focus:ring-theme-rose/20 focus:border-theme-rose block w-full p-3 outline-none transition">
+                                    
+                                    <input type="text" id="pickupTimeText" value="另行通知接回時間" readonly class="hidden w-full bg-gray-100 border border-gray-200 text-theme-sub text-sm rounded-xl block p-3 outline-none cursor-not-allowed font-bold text-center tracking-wider">
+                                </div>
+                                
+
                             </div>
+
                             <div class="bg-theme-rose/5 rounded-lg p-3 flex items-start gap-2 mt-3">
                                 <i data-lucide="alert-circle" class="w-4 h-4 text-theme-rose shrink-0 mt-0.5"></i>
                                 <p class="text-xs text-theme-rose font-medium leading-relaxed">
@@ -721,7 +733,6 @@ input, select, textarea {
                                 </p>
                             </div>
                         </div>
-                    </div>
                 </section>
 
                 <!-- 四、 乙方資訊 (優化版) -->
@@ -1221,7 +1232,7 @@ input, select, textarea {
              if(signaturePad) signaturePad.clear();
         }
 
-        // --- 條款視窗邏輯 ---
+// --- 1. 條款視窗邏輯 ---
         function openTermsModal(type) {
             currentReading = type;
             const termsModal = document.getElementById('termsModal');
@@ -1253,6 +1264,40 @@ input, select, textarea {
                     enableConfirmBtn(type);
                 }
             };
+            lucide.createIcons();
+        }
+
+        // --- 2. 接回時間切換邏輯 (移到正確的全域位置) ---
+        let isNotifyLater = false;
+
+        function togglePickupTimeMode() {
+            isNotifyLater = !isNotifyLater;
+            
+            const timeInput = document.getElementById('pickupTime');
+            const textInput = document.getElementById('pickupTimeText');
+            const btn = document.getElementById('btn-notify-later');
+            
+            if (isNotifyLater) {
+                // 切換為「另行通知」模式
+                timeInput.classList.add('hidden');
+                textInput.classList.remove('hidden');
+                
+                // 按鈕變色 (激活狀態)
+                btn.classList.add('bg-theme-rose', 'text-white', 'border-theme-rose');
+                btn.classList.remove('bg-white/40', 'text-theme-sub');
+                
+                // 清空時間輸入，避免混淆
+                timeInput.value = '';
+            } else {
+                // 切換回「時間選擇」模式
+                timeInput.classList.remove('hidden');
+                textInput.classList.add('hidden');
+                
+                // 按鈕還原
+                btn.classList.remove('bg-theme-rose', 'text-white', 'border-theme-rose');
+                btn.classList.add('bg-white/40', 'text-theme-sub');
+            }
+            // 重新渲染 Icon 確保鈴鐺圖示正常
             lucide.createIcons();
         }
 
@@ -1647,8 +1692,8 @@ input, select, textarea {
                         }
                         return type;
                     })(),
-
-                    pickup_time: document.getElementById('pickupTime').value,
+// 如果是另行通知模式，就存入固定字串，否則存入時間值
+                    pickup_time: isNotifyLater ? '另行通知接回時間' : document.getElementById('pickupTime').value,
                     signature_data: signatureUrl, // ★ 這裡改成 Storage URL
                     risk_factors: (window.riskReasons || []).join(',')
                 };
@@ -1689,6 +1734,8 @@ input, select, textarea {
                     btn.classList.add('bg-gradient-lux');
                     
                     document.getElementById('petForm').reset();
+                    // 如果目前是另行通知模式，要切換回來
+if (isNotifyLater) togglePickupTimeMode();
                     clearSignature();
                     // 重置 UI 狀態...
                     document.getElementById('btn-risk').classList.add('hidden');
@@ -1806,9 +1853,19 @@ input, select, textarea {
                 toggleChipInput();
             }
             
-document.getElementById('historyNotes').value = data.history_notes || '';
+            document.getElementById('historyNotes').value = data.history_notes || '';
 
-            // 強制觸發風險檢測
+            // ★ 新增：處理接回時間的回填
+            if (data.pickup_time === '另行通知接回時間') {
+                // 如果舊資料是另行通知，且目前介面不是該模式，就切換過去
+                if (!isNotifyLater) togglePickupTimeMode();
+            } else {
+                // 如果舊資料是時間，且目前是另行通知模式，就切換回來
+                if (isNotifyLater) togglePickupTimeMode();
+                document.getElementById('pickupTime').value = data.pickup_time || '';
+            }
+
+// 強制觸發風險檢測
             detectRiskFactors();
         }
 
