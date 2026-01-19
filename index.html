@@ -617,7 +617,7 @@ input, select, textarea {
                                 </label>
                             </div>
 
-                             <textarea rows="2" placeholder="若有病史請詳述..." class="input-minimal resize-none bg-white/30 rounded-lg border border-gray-200 focus:border-theme-rose focus:ring-0 p-3 w-full"></textarea>
+<textarea id="historyNotes" rows="2" placeholder="若有病史請詳述..." class="input-minimal resize-none bg-white/30 rounded-lg border border-gray-200 focus:border-theme-rose focus:ring-0 p-3 w-full"></textarea>
                         </div>
                     </div>
                 </section>
@@ -1426,85 +1426,158 @@ input, select, textarea {
             // 只保留數字
             input.value = input.value.replace(/[^\d]/g, '');
         }
+// --- [新增] Base64 轉 File 工具 ---
+        function dataURLtoFile(dataurl, filename) {
+            let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+            return new File([u8arr], filename, {type:mime});
+        }
 
-// --- 1. 產生 Email HTML 內容 (請放在 submitForm 上方) ---
-        function generateEmailHtml(data) {
-            // 已更新為您提供的 Logo URL
-            const LOGO_URL = "https://anzxwdphcxafxsglomez.supabase.co/storage/v1/object/public/logo/logo.png"; 
+        // --- [新增] 上傳簽名到 Supabase Storage ---
+        async function uploadSignature(dataUrl) {
+            const file = dataURLtoFile(dataUrl, `sign_${Date.now()}.png`);
+            // 假設你的 bucket 叫做 'signatures'，若不同請自行修改
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.png`;
             
+            const { data, error } = await sbClient
+                .storage
+                .from('signatures') // 請確認 Supabase Storage 有這個 bucket 且設為 public
+                .upload(fileName, file);
+
+            if (error) throw error;
+            
+            // 取得公開網址
+            const { data: { publicUrl } } = sbClient
+                .storage
+                .from('signatures')
+                .getPublicUrl(fileName);
+                
+            return publicUrl;
+        }
+
+// --- 優化版 Email 模板 (奶茶色系 + Logo置頂) ---
+        function generateEmailHtml(data) {
+            const LOGO_URL = "https://anzxwdphcxafxsglomez.supabase.co/storage/v1/object/public/logo/logo.png";
+            const now = new Date();
+            const signTimeStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+            // 處理病史顯示文字
+            let historyDisplay = data.has_history;
+            if(data.has_history === '有' && data.history_notes) {
+                historyDisplay += ` (${data.history_notes})`;
+            }
+
+            // 判斷是否顯示高風險條款 (只有 risk_factors 有內容才顯示)
+            const showRiskTerms = data.risk_factors && data.risk_factors.length > 0;
+
             return `
             <!DOCTYPE html>
             <html>
             <head>
                 <style>
-                    body { font-family: 'Helvetica', 'Arial', sans-serif; line-height: 1.6; color: #4A4238; background-color: #FAF8F5; margin: 0; padding: 0; }
-                    .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(216, 142, 153, 0.15); border: 1px solid #eee; }
-                    .header { background: linear-gradient(135deg, #D88E99 0%, #C5A065 100%); padding: 30px 20px; text-align: center; color: white; }
-                    .header h1 { margin: 0; font-size: 24px; letter-spacing: 2px; }
+                    body { margin: 0; padding: 0; background-color: #FAF8F5; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #4A4238; }
+                    .wrapper { width: 100%; table-layout: fixed; background-color: #FAF8F5; padding-bottom: 40px; }
+                    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(216, 142, 153, 0.15); }
+                    .header { background: linear-gradient(135deg, #D88E99 0%, #C5A065 100%); padding: 30px 20px; text-align: center; }
+                    .header-logo { width: 80px; height: 80px; background: #fff; border-radius: 50%; padding: 5px; margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: block; }
+                    .header h1 { margin: 0; color: #ffffff; font-size: 22px; letter-spacing: 2px; font-weight: bold; }
+                    .header p { margin: 5px 0 0; color: rgba(255,255,255,0.9); font-size: 12px; letter-spacing: 1px; }
+                    
                     .content { padding: 30px; }
-                    .section { margin-bottom: 25px; border-bottom: 1px dashed #eee; padding-bottom: 20px; }
-                    .label { color: #8C857B; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-                    .value { color: #4A4238; font-size: 16px; font-weight: bold; }
-                    .footer { background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999; }
-                    .signature-box { margin-top: 20px; text-align: center; background: #fff; border: 2px solid #f0f0f0; border-radius: 12px; padding: 15px; }
-                    .highlight { color: #D88E99; }
+                    .greeting { font-size: 16px; margin-bottom: 25px; line-height: 1.6; text-align: center; color: #8C857B; }
+                    .greeting strong { color: #D88E99; font-size: 18px; }
+
+                    .card { background-color: #FAF8F5; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(140, 133, 123, 0.1); }
+                    .card-title { color: #C5A065; font-size: 14px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #C5A065; padding-bottom: 8px; letter-spacing: 1px; }
+                    
+                    .row { margin-bottom: 10px; display: block; font-size: 14px; }
+                    .label { color: #8C857B; font-size: 12px; font-weight: bold; display: inline-block; width: 80px; }
+                    .value { color: #4A4238; font-weight: 500; }
+                    
+                    .highlight-box { background-color: #FFF0F2; border-left: 4px solid #D88E99; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                    .risk-box { background-color: #FEF2F2; border: 1px solid #FECACA; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px; color: #7F1D1D; line-height: 1.6; }
+                    
+                    .signature-area { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ddd; }
+                    .sign-img { max-width: 200px; height: auto; margin-bottom: 10px; }
+                    
+                    .footer { text-align: center; font-size: 12px; color: #8C857B; padding: 20px; background-color: #f4f1ea; }
                 </style>
             </head>
             <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>萌寵當家</h1>
-                        <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">AI GO PET SALON</p>
-                    </div>
-                    <div class="content">
-                        <p>親愛的 <strong>${data.owner_name}</strong> 您好：</p>
-                        <p>感謝您選擇萌寵當家！這是您為毛孩 <strong>${data.pet_name}</strong> 預約的服務契約副本。</p>
+                <div class="wrapper">
+                    <div style="height: 30px;"></div>
+                    <div class="container">
+                        <div class="header">
+                            <img src="${LOGO_URL}" class="header-logo" alt="Logo">
+                            <h1>寵物美容契約書</h1>
+                            <p>AI GO PET SALON SERVICE AGREEMENT</p>
+                        </div>
                         
-                        <div class="section">
-                            <div style="margin-bottom: 15px;">
-                                <div class="label">服務項目</div>
-                                <div class="value" style="color: #D88E99; font-size: 18px;">${data.service_type}</div>
+                        <div class="content">
+                            <div class="greeting">
+                                親愛的 <strong>${data.owner_name}</strong> 您好<br>
+                                感謝您選擇萌寵當家，以下為您的服務契約副本：
                             </div>
-                            <div style="margin-bottom: 15px;">
-                                <div class="label">預計接回時間</div>
-                                <div class="value">${data.pickup_time}</div>
+
+                            <div class="highlight-box">
+                                <div class="row"><span class="label">本次服務</span> <span class="value" style="color:#D88E99; font-size:16px; font-weight:bold;">${data.service_type}</span></div>
+                                <div class="row" style="margin-bottom:0;"><span class="label">預計接回</span> <span class="value">${data.pickup_time}</span></div>
                             </div>
-                            <div>
-                                <div class="label">寵物資訊</div>
-                                <div class="value">${data.pet_name} / ${data.pet_breed} / ${data.pet_color}</div>
+
+                            <div class="card">
+                                <div class="card-title">PET INFO 寵物資料</div>
+                                <div class="row"><span class="label">名字/品種</span> <span class="value">${data.pet_name} (${data.pet_breed})</span></div>
+                                <div class="row"><span class="label">性別/年齡</span> <span class="value">${data.pet_sex} / ${data.pet_age} 歲</span></div>
+                                <div class="row"><span class="label">晶片號碼</span> <span class="value">${data.pet_chip}</span></div>
+                                <div class="row"><span class="label">基本狀況</span> <span class="value">結紮:${data.is_neutered} / 親人:${data.is_friendly} / 親狗:${data.is_dog_friendly}</span></div>
+                                <div class="row"><span class="label" style="color:${data.is_aggressive === '是'?'red':'#8C857B'}">具攻擊性</span> <span class="value" style="color:${data.is_aggressive === '是'?'red':'inherit'}">${data.is_aggressive}</span></div>
+                                <div class="row"><span class="label">過往病史</span> <span class="value">${historyDisplay}</span></div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">OWNER INFO 飼主資料</div>
+                                <div class="row"><span class="label">姓名</span> <span class="value">${data.owner_name}</span></div>
+                                <div class="row"><span class="label">電話</span> <span class="value">${data.owner_phone}</span></div>
+                                <div class="row"><span class="label">地址</span> <span class="value">${data.owner_address}</span></div>
+                                <div class="row" style="margin-bottom:0;"><span class="label">緊急聯絡</span> <span class="value">${data.emergency_name} (${data.emergency_phone})</span></div>
+                            </div>
+
+                            <div style="font-size:12px; color:#8C857B; text-align:justify; padding:0 5px;">
+                                <p><strong>【定型化契約重點摘要】</strong></p>
+                                <p>本服務不涉及醫療行為。逾時接回 30 分鐘以上，將依價目表收取安親費。飼主已確認預計接回時間與服務金額無誤。</p>
+                                
+                                ${showRiskTerms ? `
+                                <div class="risk-box">
+                                    <strong>【高齡/高風險特別告知】</strong><br>
+                                    因寵物符合 ${data.risk_factors} 之條件，飼主已詳閱風險告知條款。若美容過程中因寵物自身健康狀況(如心肺功能不佳、休克、舊疾復發)所致之意外，且非因乙方故意或重大過失，乙方不負損害賠償責任。
+                                </div>` : ''}
+                            </div>
+
+                            <div class="signature-area">
+                                <img src="${data.signature_data}" class="sign-img">
+                                <div style="font-size:12px; color:#8C857B; font-weight:bold;">
+                                    簽署日期：${signTimeStr}
+                                </div>
                             </div>
                         </div>
 
-                        <div class="section">
-                            <div class="label">特別註記</div>
-                            <div class="value" style="font-size: 14px;">
-                                ${data.risk_factors ? `⚠️ 風險告知：${data.risk_factors}` : '無特殊風險註記'}
-                            </div>
-                        </div>
-
-                        <div class="signature-box">
-                            <p class="label">您的數位簽署</p>
-                            <img src="${data.signature_data}" width="200" style="max-width: 100%; height: auto;" alt="簽名" />
-                            <p style="font-size: 10px; color: #ccc; margin-top: 5px;">Signed via AI GO PET SALON Digital Form</p>
-                        </div>
-                        
-                        <div style="text-align: center; margin-top: 20px;">
-                            <img src="${LOGO_URL}" width="50" style="opacity: 0.5;" />
+                        <div class="footer">
+                            <strong>萌寵當家 AI GO PET SALON</strong><br>
+                            02-7751-5677 | 新北市蘆洲區長安街285巷30號<br>
+                            週二至週日 10:00 - 19:00 (週一公休)
                         </div>
                     </div>
-                    <div class="footer">
-                        <p>萌寵當家 AI GO PET SALON</p>
-                        <p>新北市蘆洲區長安街285巷30號 | 02-7751-5677</p>
-                    </div>
+                    <div style="height: 30px;"></div>
                 </div>
             </body>
             </html>
             `;
         }
 
-        // --- 2. 修改後的 submitForm 函式 ---
+// --- 2. 修改後的 submitForm 函式 (整合 Storage 上傳) ---
         async function submitForm(btn) {
-            // 1. 檢查條款是否勾選
+            // 1. 檢查條款
             if(!document.getElementById('agreeCheck').checked) {
                 showToast('請詳閱並同意服務條款', false);
                 const label = document.getElementById('agreeLabel');
@@ -1513,18 +1586,29 @@ input, select, textarea {
                 return;
             }
 
-            // 2. 執行欄位驗證
+            // 2. 驗證
             if(!validateForm()) return;
 
-            // 3. 按鈕變更為讀取狀態
             const originalContent = btn.innerHTML;
-            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i><span class="ml-2">傳送中...</span>`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i><span class="ml-2">資料處理中...</span>`;
             btn.disabled = true;
             btn.classList.add('opacity-80', 'cursor-not-allowed');
             lucide.createIcons();
 
             try {
-                // 4. 收集表單資料
+                // --- A. 先上傳簽名檔到 Storage ---
+                showToast('正在上傳簽名...', true);
+                const base64Sign = document.getElementById('sign-preview').src;
+                let signatureUrl = '';
+                
+                try {
+                    signatureUrl = await uploadSignature(base64Sign);
+                } catch (uploadErr) {
+                    console.error('簽名上傳失敗:', uploadErr);
+                    throw new Error('簽名檔上傳失敗，請重試');
+                }
+
+                // --- B. 收集資料 (使用上傳後的 URL) ---
                 const formData = {
                     owner_name: document.getElementById('ownerName').value,
                     owner_email: document.getElementById('ownerEmail').value,
@@ -1540,7 +1624,6 @@ input, select, textarea {
                     pet_color: document.getElementById('petColor').value,
                     pet_age: parseInt(document.getElementById('petAge').value) || 0,
                     
-                    // 晶片處理
                     pet_chip: (function(){
                         const status = document.getElementById('chipStatus').value;
                         if(status === 'no_chip') return '無晶片';
@@ -1548,42 +1631,39 @@ input, select, textarea {
                         return document.getElementById('petChip').value;
                     })(),
 
-                    // 單選題收集
                     pet_sex: document.querySelector('input[name="petSex"]:checked')?.value,
                     is_neutered: document.querySelector('input[name="isNeutered"]:checked')?.value,
                     is_friendly: document.querySelector('input[name="isFriendly"]:checked')?.value,
                     is_dog_friendly: document.querySelector('input[name="isDogFriendly"]:checked')?.value,
                     is_aggressive: document.querySelector('input[name="isAggressive"]:checked')?.value,
                     has_history: document.querySelector('input[name="hasHistory"]:checked')?.value,
+                    history_notes: document.getElementById('historyNotes').value,                    
                     
                     service_type: (function() {
                         const type = document.querySelector('input[name="serviceType"]:checked')?.value;
                         if (type === '其他項目') {
                             const desc = document.getElementById('otherServiceDesc').value.trim();
-                            if (desc) {
-                                return `其他項目 (${desc})`;
-                            }
+                            return desc ? `其他項目 (${desc})` : type;
                         }
                         return type;
                     })(),
 
                     pickup_time: document.getElementById('pickupTime').value,
-                    signature_data: document.getElementById('sign-preview').src,
+                    signature_data: signatureUrl, // ★ 這裡改成 Storage URL
                     risk_factors: (window.riskReasons || []).join(',')
                 };
 
-                // 5. 送出資料到 Supabase 資料庫
+                // --- C. 寫入資料庫 ---
                 const { error } = await sbClient.from('service_contracts').insert([formData]);
-
                 if (error) throw error;
 
-                // --- 6. 呼叫 Edge Function 寄送副本 (新增部分) ---
+                // --- D. 寄送 Email (Edge Function) ---
+                btn.innerHTML = `<i data-lucide="mail" class="animate-bounce w-5 h-5"></i><span class="ml-2">寄送副本中...</span>`;
+                lucide.createIcons();
+
                 try {
-                    console.log('正在寄送副本信件...');
-                    const emailHtml = generateEmailHtml(formData); // 呼叫上面的產生器
-                    
-                    // 請確認你的 Edge Function 名稱是否為 'send-email'
-                    const { data: funcData, error: funcError } = await sbClient.functions.invoke('send-email', {
+                    const emailHtml = generateEmailHtml(formData);
+                    const { error: funcError } = await sbClient.functions.invoke('send-email', {
                         body: { 
                             email: formData.owner_email,
                             owner_name: formData.owner_name,
@@ -1591,18 +1671,12 @@ input, select, textarea {
                             htmlContent: emailHtml
                         }
                     });
-
-                    if (funcError) {
-                        console.error('寄信失敗 (Edge Function Error):', funcError);
-                    } else {
-                        console.log('寄信成功:', funcData);
-                    }
+                    if (funcError) console.error('寄信失敗:', funcError);
                 } catch (emailErr) {
-                    console.error('寄信過程發生錯誤:', emailErr);
+                    console.error('寄信錯誤:', emailErr);
                 }
-                // ---------------------------------------
 
-                // 7. 成功後的 UI 處理
+                // --- E. 完成 ---
                 showToast('契約傳送成功！');
                 btn.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i><span class="ml-2">完成</span>`;
                 btn.classList.replace('bg-gradient-lux', 'bg-green-500');
@@ -1614,15 +1688,13 @@ input, select, textarea {
                     btn.classList.remove('opacity-80', 'cursor-not-allowed', 'bg-green-500');
                     btn.classList.add('bg-gradient-lux');
                     
-                    // 重置表單
                     document.getElementById('petForm').reset();
                     clearSignature();
-                    
+                    // 重置 UI 狀態...
                     document.getElementById('btn-risk').classList.add('hidden');
                     document.getElementById('btn-risk').classList.remove('flex');
                     document.getElementById('agreeLabel').querySelector('span').innerText = "本人已詳閱並同意以上契約條款";
                     document.getElementById('otherServiceInputArea').classList.add('hidden');
-
                     readStatus = { general: false, risk: false };
                     isHighRisk = false;
                     updateButtonUI('general', false);
@@ -1631,8 +1703,8 @@ input, select, textarea {
                 }, 1500);
 
             } catch (err) {
-                console.error('Submit Error:', err);
-                showToast('傳送失敗: ' + err.message, false);
+                console.error('Error:', err);
+                showToast('發生錯誤: ' + err.message, false);
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
                 btn.classList.remove('opacity-80', 'cursor-not-allowed');
@@ -1734,6 +1806,8 @@ input, select, textarea {
                 toggleChipInput();
             }
             
+document.getElementById('historyNotes').value = data.history_notes || '';
+
             // 強制觸發風險檢測
             detectRiskFactors();
         }
