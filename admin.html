@@ -106,8 +106,7 @@
     <div id="toast-container" class="fixed top-5 left-0 right-0 z-[100] flex flex-col items-center space-y-2 pointer-events-none px-4"></div>
 
     <!-- 登入畫面 -->
-    <div id="login-view" class="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-        <!-- 背景裝飾 -->
+<div id="login-view" class="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-theme-rose/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-theme-gold/10 rounded-full blur-3xl"></div>
 
@@ -122,25 +121,27 @@
                 <p class="text-xs text-theme-sub font-bold tracking-[0.2em] uppercase">Admin Dashboard</p>
             </div>
 
-<div class="relative group">
-    <i data-lucide="lock" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-theme-sub/50 group-focus-within:text-theme-rose transition-colors"></i>
-    <input type="password" id="password" placeholder="請輸入管理密碼" 
-           class="input-minimal pl-12 text-center tracking-widest"
-           onkeydown="if(event.key==='Enter') document.getElementById('login-btn').click()">
-</div>
-
-<button id="login-btn" onclick="handleLogin(event)" class="w-full py-4 bg-gradient-lux text-white font-bold rounded-xl shadow-lg shadow-theme-rose/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-base hover:-translate-y-1">
-    登入系統 <i data-lucide="arrow-right" class="w-5 h-5"></i>
-</button>
-            
-            <div class="pt-4 border-t border-theme-sub/10">
-                <a href="index.html" class="text-xs text-theme-sub hover:text-theme-rose transition-colors inline-flex items-center gap-1">
-                    <i data-lucide="arrow-left" class="w-3 h-3"></i> 返回首頁
-                </a>
+            <div class="flex p-1.5 bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-inner">
+                <button onclick="switchRole('admin')" id="role-admin" class="flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-white text-theme-rose shadow-sm border border-theme-rose/20">
+                    <i data-lucide="crown" class="w-4 h-4"></i> 管理員
+                </button>
+                <button onclick="switchRole('staff')" id="role-staff" class="flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 text-theme-sub hover:bg-white/40">
+                    <i data-lucide="user" class="w-4 h-4"></i> 員工
+                </button>
             </div>
+
+            <div class="relative group">
+                <i data-lucide="lock" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-theme-sub/50 group-focus-within:text-theme-rose transition-colors"></i>
+                <input type="password" id="password" placeholder="請輸入管理員密碼" 
+                       class="input-minimal pl-12 text-center tracking-widest"
+                       onkeydown="if(event.key==='Enter') document.getElementById('login-btn').click()">
+            </div>
+
+            <button id="login-btn" onclick="handleLogin(event)" class="w-full py-4 bg-gradient-lux text-white font-bold rounded-xl shadow-lg shadow-theme-rose/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-base hover:-translate-y-1">
+                登入系統 <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
         </div>
     </div>
-
     <!-- 主控台畫面 -->
     <div id="dashboard-view" class="hidden min-h-screen pb-24">
         
@@ -224,50 +225,30 @@
         </div>
     </div>
     <!-- 變更密碼彈窗 -->
-    <div id="change-pwd-modal" class="fixed inset-0 bg-theme-text/40 hidden z-[80] flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+<div id="change-pwd-modal" class="fixed inset-0 bg-theme-text/40 hidden z-[80] flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white p-8 rounded-[24px] w-full max-w-[400px] shadow-2xl transform scale-95 transition-transform duration-300 relative">
-            
-            <!-- 關閉按鈕 -->
-            <button onclick="closeChangePasswordModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
+            <button onclick="closeChangePasswordModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
 
-            <h3 class="text-xl font-bold text-theme-text mb-8 tracking-wider font-serif">變更管理密碼</h3>
+            <h3 class="text-xl font-bold text-theme-text mb-6 tracking-wider font-serif text-center">帳號密碼變更</h3>
+
+            <div id="cp-role-selector" class="flex p-1 bg-gray-100 rounded-xl mb-6 hidden">
+                <button onclick="switchCpTarget('admin')" id="cp-target-admin" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-theme-text shadow-sm">管理員 (自己)</button>
+                <button onclick="switchCpTarget('staff')" id="cp-target-staff" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-theme-sub hover:bg-white/50">一般員工</button>
+            </div>
 
             <div class="space-y-4">
-                <!-- 舊密碼 -->
-                <div class="relative group">
-                    <i data-lucide="lock" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-theme-sub/50"></i>
-                    <input type="password" id="cp-old-password" placeholder="輸入舊密碼" 
-                           class="w-full bg-[#FAF8F5] border border-transparent focus:bg-white focus:border-theme-rose/30 rounded-xl py-3 pl-11 pr-4 text-sm text-theme-text outline-none transition-all placeholder:text-gray-400">
-                </div>
-
-                <!-- 新密碼 -->
-                <div class="relative group">
-                    <i data-lucide="key" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-theme-sub/50"></i>
-                    <input type="password" id="cp-new-password" placeholder="新密碼 (至少6位)" 
-                           class="w-full bg-[#FAF8F5] border border-transparent focus:bg-white focus:border-theme-rose/30 rounded-xl py-3 pl-11 pr-4 text-sm text-theme-text outline-none transition-all placeholder:text-gray-400">
-                </div>
-
-                <!-- 確認新密碼 -->
-                <div class="relative group">
-                    <i data-lucide="shield-check" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-theme-sub/50"></i>
-                    <input type="password" id="cp-confirm-password" placeholder="確認新密碼" 
-                           class="w-full bg-[#FAF8F5] border border-transparent focus:bg-white focus:border-theme-rose/30 rounded-xl py-3 pl-11 pr-4 text-sm text-theme-text outline-none transition-all placeholder:text-gray-400">
-                </div>
+                <input type="password" id="cp-old-password" placeholder="請輸入該帳號舊密碼" class="w-full bg-[#FAF8F5] border border-transparent focus:bg-white focus:border-theme-rose/30 rounded-xl py-3 px-4 text-center text-sm outline-none transition-all tracking-widest">
+                <div class="h-px bg-gray-100 mx-4"></div>
+                <input type="password" id="cp-new-password" placeholder="新密碼 (至少6位)" class="w-full bg-[#FAF8F5] border border-transparent focus:bg-white focus:border-theme-rose/30 rounded-xl py-3 px-4 text-center text-sm outline-none transition-all tracking-widest">
+                <input type="password" id="cp-confirm-password" placeholder="確認新密碼" class="w-full bg-[#FAF8F5] border border-transparent focus:bg-white focus:border-theme-rose/30 rounded-xl py-3 px-4 text-center text-sm outline-none transition-all tracking-widest">
             </div>
 
-            <div class="flex gap-3 mt-8">
-                <button onclick="closeChangePasswordModal()" class="flex-1 py-3 bg-[#F3F4F6] text-theme-text font-bold rounded-xl hover:bg-gray-200 transition text-sm">
-                    取消
-                </button>
-                <button onclick="handleChangePassword()" id="btn-change-pwd" class="flex-1 py-3 bg-[#5D5447] text-white font-bold rounded-xl shadow-lg hover:bg-[#4A4238] active:scale-95 transition text-sm flex items-center justify-center gap-2">
-                    確認修改
-                </button>
-            </div>
+            <button onclick="handleChangePassword()" id="btn-change-pwd" class="w-full mt-8 py-3 bg-theme-text text-white font-bold rounded-xl shadow-lg active:scale-95 transition text-sm flex items-center justify-center gap-2">
+                確認修改
+            </button>
         </div>
     </div>
-
+    
     <!-- 通用密碼驗證彈窗 -->
     <div id="auth-modal" class="fixed inset-0 bg-theme-text/40 hidden z-[70] flex items-center justify-center p-6 backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white p-8 rounded-[32px] w-full max-w-xs text-center space-y-6 shadow-2xl transform scale-95 transition-transform duration-300">
@@ -297,46 +278,79 @@
     </div>
 
 <script>
-    // 初始化
+    // 初始化 icon
     lucide.createIcons();
 
     // --- 檢查是否剛修改完密碼 ---
     if (localStorage.getItem('pwd_changed')) {
-        // 延遲一點點顯示，確保畫面載入完成
         setTimeout(() => {
             showToast('密碼修改成功，請使用新密碼登入', 'success');
         }, 500);
-        localStorage.removeItem('pwd_changed'); // 清除標記
+        localStorage.removeItem('pwd_changed');
     }
     
     // --- Supabase 設定 ---
-
     const SUPABASE_URL = 'https://anzxwdphcxafxsglomez.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuenh3ZHBoY3hhZnhzZ2xvbWV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MjU2MzUsImV4cCI6MjA4NDMwMTYzNX0.i6ZHUO7UGz8AbAUz7fPHavYxKG1O-UE4k7Xr2VqP9xc';
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 全域變數
+    // --- 全域變數與帳號設定 ---
     let fullDataList = [];
     let currentItem = null;
-    let pendingAction = null; // 儲存待執行的動作 ('save' 或 'delete')
+    let pendingAction = null;
+    
+    // 🌟 當前登入身分 ('admin' 或 'staff')
+    let currentRole = 'admin'; 
+    // 🌟 修改密碼的目標對象
+    let cpTargetRole = 'admin';
 
-    // 檢查登入狀態
+    // 🌟 帳號設定 (請確認 Supabase Auth 中有這兩組帳號)
+    const ACCOUNTS = {
+        admin: 'elvira5201314@gmail.com',
+        staff: 'staff@elvira.com'
+    };
+
+    // --- 1. 登入與權限邏輯 ---
+
+    // 檢查登入狀態 (自動判斷身分)
     async function checkSession() {
         const { data: { session } } = await _supabase.auth.getSession();
-        if (session) { 
+        if (session) {
+            if (session.user.email === ACCOUNTS.staff) {
+                currentRole = 'staff';
+            } else {
+                currentRole = 'admin';
+            }
             showDashboard();
         }
     }
     checkSession();
 
-    // 顯示主控台
-    function showDashboard() {
-        document.getElementById('login-view').classList.add('hidden'); 
-        document.getElementById('dashboard-view').classList.remove('hidden'); 
-        loadData(); 
+    // 切換登入身分 (UI變更)
+    function switchRole(role) {
+        currentRole = role;
+        const btnAdmin = document.getElementById('role-admin');
+        const btnStaff = document.getElementById('role-staff');
+        const input = document.getElementById('password');
+
+        // 重置樣式
+        const activeClass = "bg-white text-theme-rose shadow-sm border border-theme-rose/20";
+        const inactiveClass = "text-theme-sub hover:bg-white/40 border-transparent";
+
+        if (role === 'admin') {
+            btnAdmin.className = `flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${activeClass}`;
+            btnStaff.className = `flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${inactiveClass}`;
+            input.placeholder = "請輸入管理員密碼";
+        } else {
+            btnStaff.className = `flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${activeClass}`;
+            btnAdmin.className = `flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${inactiveClass}`;
+            input.placeholder = "請輸入員工密碼";
+        }
+        input.value = '';
+        input.focus();
     }
 
-    // 登入處理
+    // 執行登入
     async function handleLogin(event) {
         const btn = document.getElementById('login-btn');
         const originalBtnHTML = btn.innerHTML;
@@ -344,8 +358,8 @@
         btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i>';
         lucide.createIcons();
 
-        const email = 'elvira5201314@gmail.com'; 
         const password = document.getElementById('password').value;
+        const email = ACCOUNTS[currentRole]; // 根據選擇的身分抓 Email
 
         if (!password) {
             showToast('請輸入密碼', 'error');
@@ -362,7 +376,7 @@
             btn.disabled = false;
             btn.innerHTML = originalBtnHTML;
         } else {
-            showToast('登入成功！', 'success');
+            showToast(`${currentRole === 'admin' ? '店長' : '員工'}登入成功！`, 'success');
             showDashboard();
         }
     }
@@ -372,87 +386,15 @@
         await _supabase.auth.signOut();
         location.reload();
     }
-    // --- 變更密碼功能 ---
-    
-    function openChangePasswordModal() {
-        const modal = document.getElementById('change-pwd-modal');
-        // 清空欄位
-        document.getElementById('cp-old-password').value = '';
-        document.getElementById('cp-new-password').value = '';
-        document.getElementById('cp-confirm-password').value = '';
-        
-        modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.remove('opacity-0'), 10);
-        lucide.createIcons();
+
+    // 顯示主控台
+    function showDashboard() {
+        document.getElementById('login-view').classList.add('hidden'); 
+        document.getElementById('dashboard-view').classList.remove('hidden'); 
+        loadData(); 
     }
 
-    function closeChangePasswordModal() {
-        const modal = document.getElementById('change-pwd-modal');
-        modal.classList.add('opacity-0');
-        setTimeout(() => modal.classList.add('hidden'), 300);
-    }
-
-    async function handleChangePassword() {
-        const oldPwd = document.getElementById('cp-old-password').value;
-        const newPwd = document.getElementById('cp-new-password').value;
-        const confirmPwd = document.getElementById('cp-confirm-password').value;
-        const btn = document.getElementById('btn-change-pwd');
-        const originalText = btn.innerHTML;
-
-        // 1. 基本驗證
-        if (!oldPwd || !newPwd || !confirmPwd) {
-            showToast('請填寫所有欄位', 'error');
-            return;
-        }
-        if (newPwd.length < 6) {
-            showToast('新密碼長度需至少 6 位', 'error');
-            return;
-        }
-        if (newPwd !== confirmPwd) {
-            showToast('兩次新密碼輸入不一致', 'error');
-            return;
-        }
-
-        try {
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-4 h-4"></i> 處理中';
-            btn.disabled = true;
-            lucide.createIcons();
-
-            // 2. 驗證舊密碼是否正確 (重新登入一次來驗證)
-            // 這裡假設你的管理員 email 是固定的
-            const email = 'elvira5201314@gmail.com'; 
-            
-            const { error: signInError } = await _supabase.auth.signInWithPassword({
-                email: email,
-                password: oldPwd
-            });
-
-            if (signInError) {
-                throw new Error('舊密碼錯誤');
-            }
-
-            // 3. 更新密碼
-            const { error: updateError } = await _supabase.auth.updateUser({ 
-                password: newPwd 
-            });
-
-            if (updateError) throw updateError;
-
-            // --- 修改成功後的動作 ---
-            await _supabase.auth.signOut(); // 強制登出
-            localStorage.setItem('pwd_changed', 'true'); // 設定標記
-            location.reload(); // 重新整理頁面
-
-        } catch (error) {
-
-            console.error(error);
-            showToast(error.message || '修改失敗', 'error');
-        } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            lucide.createIcons();
-        }
-    }
+    // --- 2. 資料載入與渲染 ---
 
     // 載入資料
     async function loadData() {
@@ -483,7 +425,7 @@
         renderDataList(data);
     }
 
-    // 渲染列表 (修正版：移除「無標籤」文字，若無標籤則不佔位)
+    // 渲染列表
     function renderDataList(data) {
         const container = document.getElementById('content-area');
         
@@ -504,17 +446,15 @@
                 month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
             });
 
-            // 判斷是否有風險標籤
+            // 判斷標籤
             const hasRisk = item.risk_factors && item.risk_factors.length > 0;
             const riskTag = hasRisk ? 
                 `<span class="px-2 py-0.5 rounded-md bg-red-100 text-red-500 text-[10px] font-bold whitespace-nowrap">高風險</span>` : '';
 
-            // 判斷是否有備註標籤
             const hasNotes = item.notes && item.notes.trim().length > 0;
             const noteTag = hasNotes ? 
                 `<span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-600 text-[10px] font-bold flex items-center gap-1 whitespace-nowrap"><i data-lucide="sticky-note" class="w-3 h-3"></i> 備註</span>` : '';
 
-            // ★ 修改重點：只有在「有風險」或「有備註」時，才顯示這一整行 div，否則輸出空字串 ''
             const tagsHtml = (riskTag || noteTag) ? 
                 `<div class="flex items-center gap-2 flex-wrap mt-1">${riskTag}${noteTag}</div>` : '';
 
@@ -525,16 +465,11 @@
                         ${item.pet_name ? item.pet_name[0] : '?'}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <!-- 第一行：名字 + 主人 -->
                         <div class="flex items-center gap-2">
                             <h3 class="font-bold text-theme-text text-lg truncate">${item.pet_name}</h3>
                             <span class="text-xs text-theme-sub truncate">(${item.owner_name})</span>
                         </div>
-                        
-                        <!-- 第二行：標籤區 (完全動態，無內容則不顯示) -->
                         ${tagsHtml}
-                        
-                        <!-- 第三行：資訊 -->
                         <div class="flex items-center gap-3 mt-2 text-xs text-theme-sub font-medium truncate">
                             <span class="flex items-center gap-1"><i data-lucide="scissors" class="w-3 h-3"></i> ${item.service_type || '未指定'}</span>
                             <span class="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -552,7 +487,6 @@
         lucide.createIcons();
     }
 
-
     // 搜尋功能
     document.getElementById('search-input').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
@@ -564,78 +498,32 @@
         renderDataList(filtered);
     });
 
-    // 開啟詳情彈窗 (修正版：解決備註文字跑版問題)
+    // --- 3. 詳情彈窗與編輯 ---
+
+    // 開啟詳情彈窗 (包含權限判斷)
     function openModal(id) {
         currentItem = fullDataList.find(i => i.id == id);
-        
-        if (!currentItem) {
-            alert("系統錯誤：找不到該筆資料");
-            return;
-        }
+        if (!currentItem) return;
 
         const idStr = String(currentItem.id);
         document.getElementById('modal-id').innerText = `ID: #${idStr.length > 8 ? idStr.substring(0, 8) : idStr}`;
-        
         const content = document.getElementById('modal-content');
         
+        // 定義顯示欄位
         const sections = [
-            {
-                title: '👤 飼主資料',
-                fields: [
-                    { label: '姓名', key: 'owner_name' },
-                    { label: '電話', key: 'owner_phone' },
-                    { label: 'Email', key: 'owner_email' },
-                    { label: '身分證', key: 'owner_id' },
-                    { label: '地址', key: 'owner_address', full: true }
-                ]
-            },
-            {
-                title: '🚑 緊急聯絡',
-                fields: [
-                    { label: '聯絡人', key: 'emergency_name' },
-                    { label: '緊急電話', key: 'emergency_phone' },
-                    { label: '指定醫院', key: 'hospital', full: true }
-                ]
-            },
-            {
-                title: '🐾 寵物資料',
-                fields: [
-                    { label: '名字', key: 'pet_name' },
-                    { label: '品種', key: 'pet_breed' },
-                    { label: '花色', key: 'pet_color' },
-                    { label: '年齡', key: 'pet_age', suffix: ' 歲' },
-                    { label: '性別', key: 'pet_sex' },
-                    { label: '結紮', key: 'is_neutered' },
-                    { label: '晶片', key: 'pet_chip', full: true }
-                ]
-            },
-            {
-                title: '⚠️ 行為與健康',
-                fields: [
-                    { label: '親人', key: 'is_friendly' },
-                    { label: '親狗', key: 'is_dog_friendly' },
-                    { label: '攻擊性', key: 'is_aggressive', highlight: '是' },
-                    { label: '病史', key: 'has_history', highlight: '有' },
-                    { label: '病史詳情', key: 'history_notes', full: true },
-                    { label: '風險因子', key: 'risk_factors', full: true, isTag: true }
-                ]
-            },
-            {
-                title: '✂️ 服務內容',
-                fields: [
-                    { label: '項目', key: 'service_type', full: true, highlight: true },
-                    { label: '接回時間', key: 'pickup_time' }
-                ]
-            }
+            { title: '👤 飼主資料', fields: [{label:'姓名',key:'owner_name'}, {label:'電話',key:'owner_phone'}, {label:'Email',key:'owner_email'}, {label:'身分證',key:'owner_id'}, {label:'地址',key:'owner_address',full:true}] },
+            { title: '🚑 緊急聯絡', fields: [{label:'聯絡人',key:'emergency_name'}, {label:'緊急電話',key:'emergency_phone'}, {label:'指定醫院',key:'hospital',full:true}] },
+            { title: '🐾 寵物資料', fields: [{label:'名字',key:'pet_name'}, {label:'品種',key:'pet_breed'}, {label:'花色',key:'pet_color'}, {label:'年齡',key:'pet_age',suffix:' 歲'}, {label:'性別',key:'pet_sex'}, {label:'結紮',key:'is_neutered'}, {label:'晶片',key:'pet_chip',full:true}] },
+            { title: '⚠️ 行為與健康', fields: [{label:'親人',key:'is_friendly'}, {label:'親狗',key:'is_dog_friendly'}, {label:'攻擊性',key:'is_aggressive',highlight:'是'}, {label:'病史',key:'has_history',highlight:'有'}, {label:'病史詳情',key:'history_notes',full:true}, {label:'風險因子',key:'risk_factors',full:true,isTag:true}] },
+            { title: '✂️ 服務內容', fields: [{label:'項目',key:'service_type',full:true,highlight:true}, {label:'接回時間',key:'pickup_time'}] }
         ];
 
         let html = '';
 
-        // --- 備註區塊 (修正版) ---
+        // 備註區塊
         const notes = currentItem.notes || '';
-        // 判斷：如果有內容才用 pre-wrap (保留換行)，沒內容則用一般排版顯示提示字
         const noteDisplayClass = notes ? 'whitespace-pre-wrap text-theme-text' : 'text-gray-400 italic';
-        const noteDisplayText = notes ? notes : '點擊下方「編輯資料」即可新增備註...';
+        const noteDisplayText = notes ? notes : '點擊下方「編輯」按鈕即可新增備註...';
 
         html += `
             <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-purple-400 mb-6 shadow-sm">
@@ -647,60 +535,53 @@
             </div>
         `;
         
-        // --- 其他資料區塊 ---
+        // 資料區塊
         sections.forEach(section => {
-            html += `
-                <div class="glass-panel rounded-2xl overflow-hidden mb-4 border border-white/60">
-                    <div class="bg-theme-rose/5 px-5 py-3 border-b border-theme-rose/10">
-                        <h3 class="font-bold text-theme-text text-sm">${section.title}</h3>
-                    </div>
-                    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            `;
-            
+            html += `<div class="glass-panel rounded-2xl overflow-hidden mb-4 border border-white/60"><div class="bg-theme-rose/5 px-5 py-3 border-b border-theme-rose/10"><h3 class="font-bold text-theme-text text-sm">${section.title}</h3></div><div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">`;
             section.fields.forEach(f => {
                 let val = currentItem[f.key];
                 if (val === null || val === undefined) val = '-';
                 if(f.suffix && val !== '-') val += f.suffix;
                 
-                const colSpan = f.full ? 'sm:col-span-2' : '';
-                
                 let displayVal = val;
                 if (f.isTag && val !== '-' && typeof val === 'string') {
-                    displayVal = val.split(',').map(v => 
-                        `<span class="inline-block px-2 py-0.5 rounded bg-red-100 text-red-500 text-xs font-bold mr-1">${v}</span>`
-                    ).join('');
+                    displayVal = val.split(',').map(v => `<span class="inline-block px-2 py-0.5 rounded bg-red-100 text-red-500 text-xs font-bold mr-1">${v}</span>`).join('');
                 } else if (f.highlight === true || val === f.highlight) {
                     displayVal = `<span class="text-theme-rose font-bold">${val}</span>`;
                 }
 
                 html += `
-                    <div class="${colSpan}">
+                    <div class="${f.full ? 'sm:col-span-2' : ''}">
                         <label class="block text-[10px] font-bold text-theme-sub mb-1 uppercase tracking-wider">${f.label}</label>
-                        <div class="view-mode text-sm font-bold text-theme-text min-h-[24px] flex items-center">
-                            ${displayVal}
-                        </div>
-                        <input type="text" data-key="${f.key}" value="${currentItem[f.key] || ''}" 
-                            class="edit-mode hidden input-minimal py-1.5 px-3 text-sm h-9">
-                    </div>
-                `;
+                        <div class="view-mode text-sm font-bold text-theme-text min-h-[24px] flex items-center">${displayVal}</div>
+                        <input type="text" data-key="${f.key}" value="${currentItem[f.key] || ''}" class="edit-mode hidden input-minimal py-1.5 px-3 text-sm h-9">
+                    </div>`;
             });
             html += `</div></div>`;
         });
 
+        // 簽名
         if (currentItem.signature_data) {
-            html += `
-                <div class="glass-panel rounded-2xl p-5 border border-white/60 mt-4">
-                    <h3 class="font-bold text-theme-text text-sm mb-3">✍️ 電子簽名</h3>
-                    <div class="bg-white/50 rounded-xl p-4 border border-dashed border-theme-sub/20 flex justify-center">
-                        <img src="${currentItem.signature_data}" class="max-h-24 object-contain">
-                    </div>
-                </div>
-            `;
+            html += `<div class="glass-panel rounded-2xl p-5 border border-white/60 mt-4"><h3 class="font-bold text-theme-text text-sm mb-3">✍️ 電子簽名</h3><div class="bg-white/50 rounded-xl p-4 border border-dashed border-theme-sub/20 flex justify-center"><img src="${currentItem.signature_data}" class="max-h-24 object-contain"></div></div>`;
         }
 
         content.innerHTML = html;
-        lucide.createIcons();
+        
+        // 🌟 權限控制核心 🌟
+        const deleteBtn = document.querySelector('button[onclick="requestDelete()"]');
+        const editBtn = document.getElementById('btn-edit');
+        
+        if (currentRole === 'staff') {
+            // 員工：隱藏刪除按鈕
+            deleteBtn.classList.add('hidden');
+            // 員工：按鈕改名
+            editBtn.innerHTML = '<i data-lucide="notebook-pen" class="w-4 h-4"></i> 修改備註';
+        } else {
+            deleteBtn.classList.remove('hidden');
+            editBtn.innerText = "編輯資料";
+        }
 
+        // 顯示
         document.getElementById('btn-edit').classList.remove('hidden');
         document.getElementById('btn-save').classList.add('hidden');
         
@@ -711,10 +592,9 @@
             modal.classList.remove('opacity-0');
             panel.classList.remove('translate-y-full');
         }, 10);
+        lucide.createIcons();
     }
 
-
-    // 關閉詳情彈窗
     function closeModal() {
         const modal = document.getElementById('detail-modal');
         const panel = document.getElementById('modal-panel');
@@ -723,113 +603,30 @@
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
 
-    // 啟用編輯模式
+    // 啟用編輯模式 (員工限制)
     function enableEdit() {
         document.getElementById('btn-edit').classList.add('hidden');
         document.getElementById('btn-save').classList.remove('hidden');
         
-        document.querySelectorAll('.view-mode').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.edit-mode').forEach(el => el.classList.remove('hidden'));
-        
-        showToast('已進入編輯模式', 'success');
-    }
-
-    // --- 新增：安全驗證邏輯 ---
-
-    // 開啟驗證彈窗 (接收動作類型：'save' 或 'delete')
-    function showAuthModal(actionType) {
-        pendingAction = actionType; // 設定待執行的動作
-        
-        const titleEl = document.getElementById('auth-title');
-        const descEl = document.getElementById('auth-desc');
-        
-        // 根據動作類型顯示不同標題
-        if (actionType === 'save') {
-            titleEl.innerText = '安全驗證';
-            descEl.innerText = '修改敏感資料需輸入管理密碼';
-        } else if (actionType === 'delete') {
-            titleEl.innerText = '刪除確認';
-            descEl.innerText = '刪除此筆資料需輸入管理密碼';
-        }
-
-        document.getElementById('auth-password').value = ''; // 清空密碼
-        
-        const modal = document.getElementById('auth-modal');
-        modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.remove('opacity-0'), 10);
-        
-        // 自動聚焦
-        setTimeout(() => document.getElementById('auth-password').focus(), 100);
-    }
-
-// 關閉驗證彈窗
-    function closeAuthModal() {
-        const modal = document.getElementById('auth-modal');
-        modal.classList.add('opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            // pendingAction = null; // 這行可以註解掉或刪除，因為我們已經在 handleAuthConfirm 處理過了
-        }, 300);
-        // 如果你希望保持視窗關閉就清空，這行保留也沒關係，因為上面的 handleAuthConfirm 已經修好了
-        pendingAction = null; 
-    }
-
-// 處理驗證確認
-    async function handleAuthConfirm() {
-        const btn = document.getElementById('auth-confirm-btn');
-        const originalText = btn.innerHTML;
-        const password = document.getElementById('auth-password').value;
-        
-        if (!password) {
-            showToast('請輸入密碼', 'error');
-            return;
-        }
-
-        try {
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-4 h-4"></i>';
-            btn.disabled = true;
-            lucide.createIcons();
-
-            // 驗證密碼
-            const { error } = await _supabase.auth.signInWithPassword({
-                email: 'elvira5201314@gmail.com', // 請確認這裡是用戶資料庫裡有的 email
-                password: password
-            });
-
-            if (error) throw error;
-
-            // ★ 修正點：先將動作存到區域變數，避免 closeAuthModal 把 pendingAction 清空後抓不到
-            const action = pendingAction;
-
-            // 驗證成功，關閉視窗
-            closeAuthModal();
+        if (currentRole === 'staff') {
+            // 員工：只顯示「備註」的編輯框
+            const notesInput = document.querySelector('.edit-mode[data-key="notes"]');
+            const notesView = notesInput.previousElementSibling;
             
-            // 執行對應函式 (改用剛剛存下來的 action 變數)
-            setTimeout(() => {
-                if (action === 'save') executeSave();
-                else if (action === 'delete') executeDelete();
-            }, 300);
-
-        } catch (error) {
-            console.error(error);
-            showToast('密碼錯誤', 'error');
-        } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            lucide.createIcons();
+            notesView.classList.add('hidden');
+            notesInput.classList.remove('hidden');
+            notesInput.focus();
+            
+            showToast('員工權限：僅開放修改備註', 'info');
+        } else {
+            // 管理員：全部欄位可編輯
+            document.querySelectorAll('.view-mode').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.edit-mode').forEach(el => el.classList.remove('hidden'));
+            showToast('已進入編輯模式', 'success');
         }
     }
 
-    // 強制修正儲存按鈕的點擊事件 (確保按鈕呼叫 saveChanges)
-    document.addEventListener('DOMContentLoaded', () => {
-        const saveBtn = document.getElementById('btn-save');
-        if (saveBtn) {
-            saveBtn.removeAttribute('onclick');
-            saveBtn.onclick = saveChanges;
-        }
-    });
-
-    // 點擊「儲存變更」按鈕 (檢查變更內容)
+    // 點擊「儲存變更」 (邏輯判斷)
     function saveChanges() {
         let sensitiveChanged = false;
         let notesChanged = false;
@@ -856,13 +653,12 @@
 
         if (!hasChanges) {
             showToast('未偵測到任何變更', 'info');
-            // 如果沒變更，重新載入 Modal 回到檢視模式
             openModal(currentItem.id);
             return;
         }
 
         if (sensitiveChanged) {
-            // 改了敏感資料 -> 傳入 'save' 字串告訴 Modal 這是儲存動作
+            // 改了敏感資料 -> 需要驗證密碼
             showAuthModal('save');
         } else {
             // 只改備註 -> 直接存
@@ -872,11 +668,10 @@
 
     // 點擊「刪除」按鈕
     function requestDelete() {
-        // 傳入 'delete' 字串告訴 Modal 這是刪除動作
         showAuthModal('delete');
     }
 
-    // 真正的儲存執行函式
+    // 真正的儲存執行函式 (包含權限過濾)
     async function executeSave() {
         const btn = document.getElementById('btn-save');
         if (!btn) return;
@@ -890,6 +685,8 @@
             const updates = {};
             document.querySelectorAll('.edit-mode').forEach(input => {
                 const key = input.dataset.key;
+                // 🔒 員工鎖：如果是員工，只抓取 notes 欄位，忽略其他
+                if (currentRole === 'staff' && key !== 'notes') return;
                 if (key) updates[key] = input.value;
             });
 
@@ -929,6 +726,177 @@
         }
     }
 
+    // --- 4. 安全驗證與密碼修改 ---
+
+    // 開啟驗證彈窗
+    function showAuthModal(actionType) {
+        pendingAction = actionType;
+        const titleEl = document.getElementById('auth-title');
+        const descEl = document.getElementById('auth-desc');
+        
+        if (actionType === 'save') {
+            titleEl.innerText = '安全驗證';
+            descEl.innerText = '修改敏感資料需輸入管理密碼';
+        } else if (actionType === 'delete') {
+            titleEl.innerText = '刪除確認';
+            descEl.innerText = '刪除此筆資料需輸入管理密碼';
+        }
+
+        document.getElementById('auth-password').value = '';
+        const modal = document.getElementById('auth-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        setTimeout(() => document.getElementById('auth-password').focus(), 100);
+    }
+
+    function closeAuthModal() {
+        const modal = document.getElementById('auth-modal');
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    // 處理驗證確認
+    async function handleAuthConfirm() {
+        const btn = document.getElementById('auth-confirm-btn');
+        const originalText = btn.innerHTML;
+        const password = document.getElementById('auth-password').value;
+        
+        if (!password) {
+            showToast('請輸入密碼', 'error');
+            return;
+        }
+
+        try {
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-4 h-4"></i>';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            // 驗證密碼 (使用管理員帳號驗證)
+            const { error } = await _supabase.auth.signInWithPassword({
+                email: ACCOUNTS.admin,
+                password: password
+            });
+
+            if (error) throw error;
+
+            const action = pendingAction;
+            closeAuthModal();
+            
+            setTimeout(() => {
+                if (action === 'save') executeSave();
+                else if (action === 'delete') executeDelete();
+            }, 300);
+
+        } catch (error) {
+            showToast('密碼錯誤', 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    // 切換修改密碼對象 (UI)
+    function switchCpTarget(target) {
+        cpTargetRole = target;
+        const btnAdmin = document.getElementById('cp-target-admin');
+        const btnStaff = document.getElementById('cp-target-staff');
+        const input = document.getElementById('cp-old-password');
+
+        if (target === 'admin') {
+            btnAdmin.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-theme-text shadow-sm";
+            btnStaff.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all text-theme-sub hover:bg-white/50";
+            input.placeholder = "請輸入管理員舊密碼";
+        } else {
+            btnStaff.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-theme-text shadow-sm";
+            btnAdmin.className = "flex-1 py-2 rounded-lg text-xs font-bold transition-all text-theme-sub hover:bg-white/50";
+            input.placeholder = "請輸入員工舊密碼";
+        }
+    }
+
+    function openChangePasswordModal() {
+        const modal = document.getElementById('change-pwd-modal');
+        const selector = document.getElementById('cp-role-selector');
+        
+        // 只有管理員能看到選擇器
+        if (currentRole === 'admin') {
+            selector.classList.remove('hidden');
+            switchCpTarget('admin'); // 預設選自己
+        } else {
+            selector.classList.add('hidden');
+            cpTargetRole = 'staff'; // 員工只能改員工
+        }
+
+        document.getElementById('cp-old-password').value = '';
+        document.getElementById('cp-new-password').value = '';
+        document.getElementById('cp-confirm-password').value = '';
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        lucide.createIcons();
+    }
+
+    function closeChangePasswordModal() {
+        const modal = document.getElementById('change-pwd-modal');
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    async function handleChangePassword() {
+        const oldPwd = document.getElementById('cp-old-password').value;
+        const newPwd = document.getElementById('cp-new-password').value;
+        const confirmPwd = document.getElementById('cp-confirm-password').value;
+        const btn = document.getElementById('btn-change-pwd');
+        const originalText = btn.innerHTML;
+
+        if (!oldPwd || !newPwd || !confirmPwd) {
+            showToast('請填寫所有欄位', 'error');
+            return;
+        }
+        if (newPwd.length < 6) {
+            showToast('新密碼長度需至少 6 位', 'error');
+            return;
+        }
+        if (newPwd !== confirmPwd) {
+            showToast('兩次新密碼輸入不一致', 'error');
+            return;
+        }
+
+        try {
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-4 h-4"></i> 處理中';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            // 驗證舊密碼 (必須使用目標帳號登入來驗證)
+            const targetEmail = ACCOUNTS[cpTargetRole];
+            const { error: signInError } = await _supabase.auth.signInWithPassword({
+                email: targetEmail,
+                password: oldPwd
+            });
+
+            if (signInError) {
+                showToast('舊密碼錯誤', 'error');
+                return;
+            }
+
+            // 更新密碼
+            const { error: updateError } = await _supabase.auth.updateUser({ password: newPwd });
+            if (updateError) throw updateError;
+
+            // 強制登出重來
+            await _supabase.auth.signOut();
+            localStorage.setItem('pwd_changed', 'true');
+            location.reload();
+
+        } catch (error) {
+            showToast('修改失敗', 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
     // Toast 提示
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -952,11 +920,32 @@
         }, 3000);
     }
 
+    // 綁定事件：強制修正儲存按鈕的點擊事件
+    document.addEventListener('DOMContentLoaded', () => {
+        const saveBtn = document.getElementById('btn-save');
+        if (saveBtn) {
+            saveBtn.removeAttribute('onclick');
+            saveBtn.onclick = saveChanges;
+        }
+    });
+
     // 點擊背景關閉彈窗
     document.getElementById('detail-modal').addEventListener('click', (e) => {
         if (e.target === document.getElementById('detail-modal')) closeModal();
     });
 </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('./sw-admin.js?v=1');
+                    console.log('Admin SW 註冊成功');
+                } catch (error) {
+                    console.error('Admin SW 註冊失敗:', error);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
 
