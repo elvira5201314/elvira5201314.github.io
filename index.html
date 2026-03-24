@@ -14,7 +14,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js');
+                navigator.serviceWorker.register('./sw.js?v=1');
             });
         }
     </script>
@@ -79,8 +79,15 @@
     </script>
 
     <style>
+        /* ✅ Facebook SVG 濾鏡：柔和一點符合整體風格 */
+        .fb-icon {
+            width: 20px;
+            height: 20px;
+            filter: saturate(0.9) brightness(0.95) contrast(0.95);
+        }
+
         /* 全局設定 */
-        body { 
+        body {
             background-color: #FAF8F5;
             background-image: 
                 radial-gradient(circle at 10% 20%, rgba(216, 142, 153, 0.08) 0%, transparent 40%),
@@ -364,7 +371,7 @@ input, select, textarea {
 
                 <a href="https://www.facebook.com/0616AIGO/?locale=zh_TW" target="_blank" class="btn-card flex items-center p-4 rounded-2xl group">
                      <div class="w-10 h-10 rounded-full bg-[#1877F2]/10 text-[#1877F2] flex items-center justify-center mr-4 group-hover:bg-[#1877F2] group-hover:text-white transition-colors duration-300">
-                        <i data-lucide="facebook" class="w-5 h-5"></i>
+                        <img src="fb.svg" alt="Facebook" class="fb-icon">
                     </div>
                     <div class="flex-1">
                          <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-0.5">Social Media</span>
