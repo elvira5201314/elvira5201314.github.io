@@ -14,7 +14,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=1');
+                navigator.serviceWorker.register('./sw.js?v=2');
             });
         }
     </script>
@@ -79,11 +79,14 @@
     </script>
 
     <style>
-        /* ✅ Facebook SVG 濾鏡：柔和一點符合整體風格 */
-        .fb-icon {
+        /* ✅ Facebook SVG 圖示樣式 */
+        .fb-icon-svg {
             width: 20px;
             height: 20px;
-            filter: saturate(0.9) brightness(0.95) contrast(0.95);
+            transition: fill 0.3s ease;
+        }
+        .group:hover .fb-icon-svg {
+            fill: #ffffff;
         }
 
         /* 全局設定 */
@@ -369,17 +372,18 @@ input, select, textarea {
                     <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300 group-hover:text-[#06C755]"></i>
                 </a>
 
-                <a href="https://www.facebook.com/0616AIGO/?locale=zh_TW" target="_blank" class="btn-card flex items-center p-4 rounded-2xl group">
-                     <div class="w-10 h-10 rounded-full bg-[#1877F2]/10 text-[#1877F2] flex items-center justify-center mr-4 group-hover:bg-[#1877F2] group-hover:text-white transition-colors duration-300">
-                        <img src="fb.svg" alt="Facebook" class="fb-icon">
-                    </div>
-                    <div class="flex-1">
-                         <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-0.5">Social Media</span>
-                         <span class="block text-sm font-bold text-theme-text group-hover:text-[#1877F2] transition-colors">追蹤 Facebook 粉絲專頁</span>
-                    </div>
-                    <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-300 group-hover:text-[#1877F2]"></i>
-                </a>
-
+<a href="https://www.facebook.com/0616AIGO/?locale=zh_TW" target="_blank" class="btn-card flex items-center p-4 rounded-2xl group">
+    <div class="w-10 h-10 rounded-full bg-[#1877F2]/10 text-[#1877F2] flex items-center justify-center mr-4 group-hover:bg-[#1877F2] group-hover:text-white transition-colors duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" class="group-hover:fill-white transition-colors duration-300">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+    </div>
+    <div class="flex-1">
+        <span class="block text-[10px] font-bold text-theme-sub tracking-widest uppercase mb-0.5">Social Media</span>
+        <span class="block text-sm font-bold text-theme-text group-hover:text-[#1877F2] transition-colors">追蹤 Facebook 粉絲專頁</span>
+    </div>
+    <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-300 group-hover:text-[#1877F2]"></i>
+</a>
                 <a href="https://maps.google.com/?q=新北市蘆洲區長安街285巷30號" target="_blank" class="btn-card flex items-center p-4 rounded-2xl group">
                      <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mr-4 group-hover:bg-theme-gold group-hover:text-white transition-colors">
                         <i data-lucide="map-pin" class="w-5 h-5"></i>
@@ -2042,9 +2046,9 @@ async function searchOldCustomer() {
         <div class="bg-[#FAF8F5] w-[90%] max-w-sm rounded-[32px] p-6 shadow-2xl transform scale-95 transition-transform duration-300 border border-white/50" id="petSelectContent">
             
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-theme-rose/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-slight">
-                    <i data-lucide="party-popper" class="w-8 h-8 text-theme-rose"></i>
-                </div>
+<div class="w-16 h-16 bg-theme-rose/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-slight">
+    <i data-lucide="sparkles" class="w-8 h-8 text-theme-rose"></i>
+</div>
                 <h3 class="text-xl font-bold text-theme-text font-serif tracking-widest mb-1">歡迎回來！</h3>
 <p class="text-xs text-theme-sub tracking-wider">找到歷史紀錄，請確認要帶入的資料：</p>
             </div>
